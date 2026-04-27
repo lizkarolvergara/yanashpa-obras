@@ -1,0 +1,52 @@
+import type { Obra } from '../../types'
+import EstadoBadge from './EstadoBadge'
+
+interface Props {
+  obra: Obra
+  onClick: () => void
+}
+
+export default function ObraCard({ obra, onClick }: Props) {
+  const diasRestantes = Math.ceil(
+    (new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  )
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-teal-300 hover:shadow-sm transition-all"
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h2 className="font-medium text-gray-900 leading-snug">{obra.nombre}</h2>
+        <EstadoBadge estado={obra.estado} />
+      </div>
+
+      <p className="text-sm text-gray-500 mb-4">{obra.contratista}</p>
+
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-xs text-gray-400 mb-0.5">N° contrato</p>
+          <p className="text-gray-700">{obra.nro_contrato ?? '—'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
+          <p className="text-gray-700">
+            {new Date(obra.fecha_fin).toLocaleDateString('es-PE')}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-400 mb-0.5">Tipo</p>
+          <p className="text-gray-700 capitalize">
+            {obra.tipo === 'obra_civil' ? 'Obra civil' : 'Servicio'}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-400 mb-0.5">Días restantes</p>
+          <p className={diasRestantes < 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
+            {diasRestantes < 0 ? `Vencido (${Math.abs(diasRestantes)}d)` : `${diasRestantes}d`}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
