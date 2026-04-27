@@ -1,26 +1,51 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useObras } from '../../hooks/useObras'
+import { useObra } from '../../hooks/useObra'
+
+const camposVacios = {
+  nombre: '',
+  contratista: '',
+  tipo: 'obra_civil' as 'obra_civil' | 'servicio',
+  monto: '',
+  fecha_inicio: '',
+  fecha_fin: '',
+  estado: 'activa' as 'activa' | 'pausada' | 'cerrada',
+  ubicacion: '',
+  descripcion: '',
+  nro_contrato: '',
+  notas: '',
+}
 
 export default function ObraFormPage() {
   const navigate = useNavigate()
-  const { createObra } = useObras()
+  const { id } = useParams<{ id: string }>()
+  const esEdicion = !!id
+
+  const { createObra, updateObra } = useObras()
+  const { obra, loading } = useObra(esEdicion ? id! : '')
+
+  const [form, setForm] = useState(camposVacios)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [form, setForm] = useState({
-    nombre: '',
-    contratista: '',
-    tipo: 'obra_civil' as 'obra_civil' | 'servicio',
-    monto: '',
-    fecha_inicio: '',
-    fecha_fin: '',
-    estado: 'activa' as 'activa' | 'pausada' | 'cerrada',
-    ubicacion: '',
-    descripcion: '',
-    nro_contrato: '',
-    notas: '',
-  })
+  useEffect(() => {
+    if (esEdicion && obra) {
+      setForm({
+        nombre:       obra.nombre,
+        contratista:  obra.contratista,
+        tipo:         obra.tipo,
+        monto:        obra.monto?.toString() ?? '',
+        fecha_inicio: obra.fecha_inicio,
+        fecha_fin:    obra.fecha_fin,
+        estado:       obra.estado,
+        ubicacion:    obra.ubicacion ?? '',
+        descripcion:  obra.descripcion ?? '',
+        nro_contrato: obra.nro_contrato ?? '',
+        notas:        obra.notas ?? '',
+      })
+    }
+  }, [obra])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -31,15 +56,21 @@ export default function ObraFormPage() {
     setSaving(true)
     setError(null)
     try {
-      await createObra({
+      const payload = {
         ...form,
-        monto: form.monto ? parseFloat(form.monto) : null,
-        ubicacion: form.ubicacion || null,
+        monto:       form.monto ? parseFloat(form.monto) : null,
+        ubicacion:   form.ubicacion   || null,
         descripcion: form.descripcion || null,
-        nro_contrato: form.nro_contrato || null,
-        notas: form.notas || null,
-      })
-      navigate('/obras')
+        nro_contrato:form.nro_contrato|| null,
+        notas:       form.notas       || null,
+      }
+      if (esEdicion) {
+        await updateObra(id!, payload)
+        navigate(`/obras/${id}`)
+      } else {
+        await createObra(payload)
+        navigate('/obras')
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -47,16 +78,24 @@ export default function ObraFormPage() {
     }
   }
 
+  if (esEdicion && loading) return (
+    <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
+      Cargando...
+    </div>
+  )
+
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate('/obras')}
+          onClick={() => navigate(esEdicion ? `/obras/${id}` : '/obras')}
           className="text-gray-400 hover:text-gray-600 text-sm"
         >
           ← Volver
         </button>
-        <h1 className="text-xl font-medium text-gray-900">Nueva obra</h1>
+        <h1 className="text-xl font-medium text-gray-900">
+          {esEdicion ? 'Editar obra' : 'Nueva obra'}
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
@@ -132,7 +171,7 @@ export default function ObraFormPage() {
             />
           </div>
           <div>
-            <label className="block text-gray-600 text-sm mb-1.5">Fecha de fin *</label>
+            <label className="block text-sm text-gray-600 mb-1.5">Fecha de fin *</label>
             <input
               type="date"
               name="fecha_fin"
@@ -206,7 +245,7 @@ export default function ObraFormPage() {
         <div className="flex gap-3 pt-2">
           <button
             type="button"
-            onClick={() => navigate('/obras')}
+            onClick={() => navigate(esEdicion ? `/obras/${id}` : '/obras')}
             className="flex-1 border border-gray-200 text-gray-600 text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancelar
@@ -216,7 +255,7 @@ export default function ObraFormPage() {
             disabled={saving}
             className="flex-1 bg-teal-600 text-white text-sm py-2.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Guardando...' : 'Guardar obra'}
+            {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar obra'}
           </button>
         </div>
 
