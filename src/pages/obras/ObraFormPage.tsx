@@ -6,15 +6,14 @@ import { useObra } from '../../hooks/useObra'
 const camposVacios = {
   nombre: '',
   contratista: '',
-  tipo: 'obra_civil' as 'obra_civil' | 'servicio',
+  tipo: 'obra_civil' as 'obra_civil' | 'mantenimiento' | 'jardineria' | 'carpinteria',
   monto: '',
   fecha_inicio: '',
   fecha_fin: '',
   estado: 'activa' as 'activa' | 'pausada' | 'cerrada',
   ubicacion: '',
   descripcion: '',
-  nro_contrato: '',
-  notas: '',
+  ruc: '',
 }
 
 export default function ObraFormPage() {
@@ -32,17 +31,17 @@ export default function ObraFormPage() {
   useEffect(() => {
     if (esEdicion && obra) {
       setForm({
-        nombre:       obra.nombre,
-        contratista:  obra.contratista,
-        tipo:         obra.tipo,
-        monto:        obra.monto?.toString() ?? '',
-        fecha_inicio: obra.fecha_inicio,
-        fecha_fin:    obra.fecha_fin,
-        estado:       obra.estado,
-        ubicacion:    obra.ubicacion ?? '',
-        descripcion:  obra.descripcion ?? '',
-        nro_contrato: obra.nro_contrato ?? '',
-        notas:        obra.notas ?? '',
+        nombre:            obra.nombre,
+        contratista:       obra.contratista,
+        tipo:              obra.tipo,
+        monto:             obra.monto?.toString() ?? '',
+        fecha_inicio:      obra.fecha_inicio,
+        fecha_fin:         obra.fecha_fin,
+        estado:            obra.estado,
+        ubicacion:         obra.ubicacion ?? '',
+        descripcion:       obra.descripcion ?? '',
+        ruc:               obra.ruc ?? '',
+
       })
     }
   }, [obra])
@@ -58,18 +57,17 @@ export default function ObraFormPage() {
     try {
       const payload = {
         ...form,
-        monto:       form.monto ? parseFloat(form.monto) : null,
-        ubicacion:   form.ubicacion   || null,
-        descripcion: form.descripcion || null,
-        nro_contrato:form.nro_contrato|| null,
-        notas:       form.notas       || null,
+        monto:             form.monto ? parseFloat(form.monto) : null,
+        ubicacion:         form.ubicacion || null,
+        descripcion:       form.descripcion || null,
+        ruc:               form.ruc || null,
       }
       if (esEdicion) {
         await updateObra(id!, payload)
-        navigate(`/obras/${id}`)
+        navigate(`/proyectos/${id}`)
       } else {
         await createObra(payload)
-        navigate('/obras')
+        navigate('/proyectos')
       }
     } catch (err: any) {
       setError(err.message)
@@ -88,13 +86,13 @@ export default function ObraFormPage() {
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <button
-          onClick={() => navigate(esEdicion ? `/obras/${id}` : '/obras')}
+          onClick={() => navigate(esEdicion ? `/proyectos/${id}` : '/proyectos')}
           className="text-gray-400 hover:text-gray-600 text-sm"
         >
           ← Volver
         </button>
         <h1 className="text-xl font-medium text-gray-900">
-          {esEdicion ? 'Editar obra' : 'Nueva obra'}
+          {esEdicion ? 'Editar proyecto' : 'Nuevo proyecto'}
         </h1>
       </div>
 
@@ -107,7 +105,7 @@ export default function ObraFormPage() {
         )}
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1.5">Nombre de la obra *</label>
+          <label className="block text-sm text-gray-600 mb-1.5">Nombre del proyecto *</label>
           <input
             name="nombre"
             value={form.nombre}
@@ -118,16 +116,29 @@ export default function ObraFormPage() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-1.5">Contratista *</label>
-          <input
-            name="contratista"
-            value={form.contratista}
-            onChange={handleChange}
-            required
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-            placeholder="Nombre de la empresa o persona natural"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1.5">Contratista *</label>
+            <input
+              name="contratista"
+              value={form.contratista}
+              onChange={handleChange}
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              placeholder="Nombre o razón social"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1.5">RUC</label>
+            <input
+              name="ruc"
+              value={form.ruc}
+              onChange={handleChange}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              placeholder="20xxxxxxxxx"
+              maxLength={11}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -140,7 +151,9 @@ export default function ObraFormPage() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
             >
               <option value="obra_civil">Obra civil</option>
-              <option value="servicio">Servicio</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="jardineria">Jardinería</option>
+              <option value="carpinteria">Carpintería</option>
             </select>
           </div>
           <div>
@@ -151,9 +164,9 @@ export default function ObraFormPage() {
               onChange={handleChange}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
             >
-              <option value="activa">Activa</option>
-              <option value="pausada">Pausada</option>
-              <option value="cerrada">Cerrada</option>
+              <option value="activa">Activo</option>
+              <option value="pausada">Pausado</option>
+              <option value="cerrada">Cerrado</option>
             </select>
           </div>
         </div>
@@ -185,16 +198,6 @@ export default function ObraFormPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">N° de contrato</label>
-            <input
-              name="nro_contrato"
-              value={form.nro_contrato}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-              placeholder="Ej: CON-2024-001"
-            />
-          </div>
-          <div>
             <label className="block text-sm text-gray-600 mb-1.5">Monto contractual (S/.)</label>
             <input
               type="number"
@@ -205,17 +208,16 @@ export default function ObraFormPage() {
               placeholder="0.00"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm text-gray-600 mb-1.5">Ubicación / zona</label>
-          <input
-            name="ubicacion"
-            value={form.ubicacion}
-            onChange={handleChange}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-            placeholder="Ej: Zona industrial norte"
-          />
+          <div>
+            <label className="block text-sm text-gray-600 mb-1.5">Ubicación</label>
+            <input
+              name="ubicacion"
+              value={form.ubicacion}
+              onChange={handleChange}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              placeholder="Ej: Yanashpa Village"
+            />
+          </div>
         </div>
 
         <div>
@@ -230,22 +232,57 @@ export default function ObraFormPage() {
           />
         </div>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-1.5">Notas internas</label>
-          <textarea
-            name="notas"
-            value={form.notas}
-            onChange={handleChange}
-            rows={2}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none"
-            placeholder="Notas visibles solo para ti..."
-          />
-        </div>
+        {/* <div className="border-t border-gray-100 pt-5">
+          <p className="text-sm font-medium text-gray-700 mb-4">Datos de contacto</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">Nombre</label>
+              <input
+                name="contacto_nombre"
+                value={form.contacto_nombre}
+                onChange={handleChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                placeholder="Nombre del contacto"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">Cargo</label>
+              <input
+                name="contacto_cargo"
+                value={form.contacto_cargo}
+                onChange={handleChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                placeholder="Ej: Residente de obra"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">Teléfono</label>
+              <input
+                name="contacto_telefono"
+                value={form.contacto_telefono}
+                onChange={handleChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                placeholder="9xxxxxxxx"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1.5">Correo</label>
+              <input
+                type="email"
+                name="contacto_email"
+                value={form.contacto_email}
+                onChange={handleChange}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                placeholder="correo@empresa.com"
+              />
+            </div>
+          </div>
+        </div> */}
 
         <div className="flex gap-3 pt-2">
           <button
             type="button"
-            onClick={() => navigate(esEdicion ? `/obras/${id}` : '/obras')}
+            onClick={() => navigate(esEdicion ? `/proyectos/${id}` : '/proyectos')}
             className="flex-1 border border-gray-200 text-gray-600 text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancelar
@@ -255,7 +292,7 @@ export default function ObraFormPage() {
             disabled={saving}
             className="flex-1 bg-teal-600 text-white text-sm py-2.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar obra'}
+            {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar proyecto'}
           </button>
         </div>
 

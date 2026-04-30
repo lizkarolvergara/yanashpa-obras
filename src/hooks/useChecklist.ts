@@ -32,5 +32,15 @@ export function useChecklist(obraId: string) {
     return data
   }
 
-  return { checklists, loading, createChecklist }
+  async function deleteChecklist(id: string) {
+    const { error } = await supabase
+      .from('checklists')
+      .delete()
+      .eq('id', id)
+    if (error) throw error
+    setChecklists(prev => prev.filter(c => c.id !== id))
+  }
+
+return { checklists, loading, createChecklist, deleteChecklist }
+  return { checklists, loading, createChecklist, deleteChecklist }
 }

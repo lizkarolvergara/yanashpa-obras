@@ -11,11 +11,11 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/obras" replace />} />
-          <Route path="obras" element={<ObrasPage />} />
-          <Route path="obras/nueva" element={<ObraFormPage />} />
-          <Route path="obras/:id" element={<ObraDetallePage />} />
-          <Route path="obras/:id/editar" element={<ObraFormPage />} />
+          <Route index element={<Navigate to="/proyectos" replace />} />
+          <Route path="proyectos" element={<ObrasPage />} />
+          <Route path="proyectos/nuevo" element={<ObraFormPage />} />
+          <Route path="proyectos/:id" element={<ObraDetallePage />} />
+          <Route path="proyectos/:id/editar" element={<ObraFormPage />} />
           <Route path="campo" element={<PendientesPage />} />
           <Route path="seguridad" element={<ChecklistPage />} />
         </Route>

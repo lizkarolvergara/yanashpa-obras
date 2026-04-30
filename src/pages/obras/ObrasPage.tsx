@@ -11,10 +11,10 @@ export default function ObrasPage() {
   const navigate = useNavigate()
 
   const filtros: { value: Filtro; label: string }[] = [
-    { value: 'todas',   label: 'Todas' },
-    { value: 'activa',  label: 'Activas' },
-    { value: 'pausada', label: 'Pausadas' },
-    { value: 'cerrada', label: 'Cerradas' },
+    { value: 'todas',   label: 'Todos' },
+    { value: 'activa',  label: 'Activos' },
+    { value: 'pausada', label: 'Pausados' },
+    { value: 'cerrada', label: 'Cerrados' },
   ]
 
   const obrasFiltradas = filtro === 'todas'
@@ -23,7 +23,7 @@ export default function ObrasPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
-      Cargando obras...
+      Cargando proyectos...
     </div>
   )
 
@@ -36,12 +36,12 @@ export default function ObrasPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-medium text-gray-900">Obras</h1>
+        <h1 className="text-xl font-medium text-gray-900">Proyectos</h1>
         <button
-          onClick={() => navigate('/obras/nueva')}
+          onClick={() => navigate('/proyectos/nuevo')}
           className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
         >
-          + Nueva obra
+          + Nuevo proyecto
         </button>
       </div>
 
@@ -64,8 +64,8 @@ export default function ObrasPage() {
       {obrasFiltradas.length === 0 ? (
         <div className="text-center py-20 text-gray-400 text-sm">
           {filtro === 'todas'
-            ? 'No hay obras registradas aún.'
-            : `No hay obras ${filtro}s.`}
+            ? 'No hay proyectos registrados aún.'
+            : `No hay proyectos ${filtro}s.`}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -73,7 +73,7 @@ export default function ObrasPage() {
             <ObraCard
               key={obra.id}
               obra={obra}
-              onClick={() => navigate(`/obras/${obra.id}`)}
+              onClick={() => navigate(`/proyectos/${obra.id}`)}
             />
           ))}
         </div>

@@ -3,15 +3,17 @@ import type { Checklist } from '../../types'
 
 const ITEMS = [
   { key: 'epp',          label: 'EPP correcto en todos los trabajadores' },
-  { key: 'senalizacion', label: 'Señalización de zona activa' },
-  { key: 'equipos',      label: 'Equipos con certificado vigente' },
   { key: 'orden',        label: 'Orden y limpieza del área' },
+  { key: 'sctr',         label: 'SCTR vigente' },
+  { key: 'equipos',      label: 'Equipos con certificado vigente' },
+  { key: 'andamios',     label: 'Andamios y estructuras temporales seguras' },
+  { key: 'botiquin',     label: 'Botiquín de primeros auxilios disponible' },
+  { key: 'extintores',   label: 'Extintores disponibles y vigentes' },
+  { key: 'electrico',    label: 'Instalaciones eléctricas provisionales seguras' },
   { key: 'evacuacion',   label: 'Accesos y vías de evacuación libres' },
   { key: 'herramientas', label: 'Herramientas en buen estado' },
-  { key: 'andamios',     label: 'Andamios y estructuras temporales seguras' },
-  { key: 'electrico',    label: 'Instalaciones eléctricas provisionales seguras' },
-  { key: 'botiquin',     label: 'Botiquín de primeros auxilios disponible' },
-  { key: 'charla',       label: 'Charla de seguridad realizada al inicio' },
+  { key: 'senalizacion', label: 'Señalización de zona activa' },
+  { key: 'induccion',    label: 'Inducción de seguridad al personal' },
 ]
 
 type RespuestaVal = 'ok' | 'observado' | 'na'

@@ -5,6 +5,15 @@ interface Props {
   obra: Obra
   onClick: () => void
 }
+function formatTipo(tipo: string) {
+  const tipos: Record<string, string> = {
+    obra_civil:    'Obra civil',
+    mantenimiento: 'Mantenimiento',
+    jardineria:    'Jardinería',
+    carpinteria:   'Carpintería',
+  }
+  return tipos[tipo] ?? tipo
+}
 
 export default function ObraCard({ obra, onClick }: Props) {
   const diasRestantes = Math.ceil(
@@ -25,8 +34,8 @@ export default function ObraCard({ obra, onClick }: Props) {
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">N° contrato</p>
-          <p className="text-gray-700">{obra.nro_contrato ?? '—'}</p>
+          <p className="text-xs text-gray-400 mb-0.5">RUC</p>
+          <p className="text-gray-700">{obra.ruc ?? '—'}</p>
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
@@ -37,7 +46,7 @@ export default function ObraCard({ obra, onClick }: Props) {
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Tipo</p>
           <p className="text-gray-700 capitalize">
-            {obra.tipo === 'obra_civil' ? 'Obra civil' : 'Servicio'}
+            {formatTipo(obra.tipo)}
           </p>
         </div>
         <div>

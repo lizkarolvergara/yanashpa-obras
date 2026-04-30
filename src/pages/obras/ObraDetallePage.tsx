@@ -13,16 +13,31 @@ import ChecklistResumen from '../../components/seguridad/ChecklistResumen'
 import { useDocumentos } from '../../hooks/useDocumentos'
 import DocumentoItem from '../../components/documentos/DocumentoItem'
 import FileUploader from '../../components/documentos/FileUploader'
+import { useAuditorias } from '../../hooks/useAuditorias'
+import AuditoriaForm from '../../components/seguridad/AuditoriaForm'
+import AuditoriaResumen from '../../components/seguridad/AuditoriaResumen'
+import { useContactos } from '../../hooks/useContactos'
 
-type Tab = 'info' | 'documentos' | 'pendientes' | 'notas' | 'seguridad'
+type Tab = 'info' | 'documentos' | 'pendientes' | 'notas' | 'seguridad' | 'auditoria'
 
 const tabs: { value: Tab; label: string }[] = [
   { value: 'info',       label: 'Información' },
   { value: 'documentos', label: 'Documentos' },
   { value: 'pendientes', label: 'Pendientes' },
-  { value: 'notas',      label: 'Notas de campo' },
+  { value: 'notas',      label: 'Notas' },
   { value: 'seguridad',  label: 'Seguridad' },
+  { value: 'auditoria',  label: 'Auditoría' },
 ]
+
+function formatTipo(tipo: string) {
+  const tipos: Record<string, string> = {
+    obra_civil:    'Obra civil',
+    mantenimiento: 'Mantenimiento',
+    jardineria:    'Jardinería',
+    carpinteria:   'Carpintería',
+  }
+  return tipos[tipo] ?? tipo
+}
 
 export default function ObraDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -35,9 +50,15 @@ export default function ObraDetallePage() {
   const [savingNota, setSavingNota] = useState(false)
   const { notas, loading: loadingN, createNota, deleteNota } = useNotas(id!)
   const [showChecklistForm, setShowChecklistForm] = useState(false)
-  const { checklists, loading: loadingC, createChecklist } = useChecklist(id!)
+  const { checklists, loading: loadingC, createChecklist, deleteChecklist } = useChecklist(id!)
   const [showUploader, setShowUploader] = useState(false)
   const { documentos, loading: loadingD, uploadDocumento, deleteDocumento } = useDocumentos(id!)
+  const [showAuditoriaForm, setShowAuditoriaForm] = useState(false)
+  const { auditorias, loading: loadingA, createAuditoria, deleteAuditoria } = useAuditorias(id!)
+  const [showContactoForm, setShowContactoForm] = useState(false)
+  const [contactoForm, setContactoForm] = useState({ nombre: '', cargo: '', telefono: '', email: '' })
+  const [savingContacto, setSavingContacto] = useState(false)
+  const { contactos, loading: loadingCont, createContacto, deleteContacto } = useContactos(id!)
 
   if (loading) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
@@ -55,10 +76,10 @@ export default function ObraDetallePage() {
     <div>
       <div className="flex items-center gap-3 mb-1">
         <button
-          onClick={() => navigate('/obras')}
+          onClick={() => navigate('/proyectos')}
           className="text-gray-400 hover:text-gray-600 text-sm"
         >
-          ← Obras
+          ← Proyectos
         </button>
       </div>
 
@@ -87,52 +108,160 @@ export default function ObraDetallePage() {
       </div>
 
       {tab === 'info' && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm">
-            <div>
-              <p className="text-xs text-gray-400 mb-1">N° de contrato</p>
-              <p className="text-gray-800">{obra.nro_contrato ?? '—'}</p>
+        <div className="space-y-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4">Datos del contrato</p>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Contratista</p>
+                <p className="text-gray-800">{obra.contratista}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">RUC</p>
+                <p className="text-gray-800">{obra.ruc ?? '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Tipo</p>
+                <p className="text-gray-800">{formatTipo(obra.tipo)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Monto contractual</p>
+                <p className="text-gray-800">
+                  {obra.monto
+                    ? `S/. ${obra.monto.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Fecha de inicio</p>
+                <p className="text-gray-800">{new Date(obra.fecha_inicio).toLocaleDateString('es-PE')}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Fecha de fin</p>
+                <p className="text-gray-800">{new Date(obra.fecha_fin).toLocaleDateString('es-PE')}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">Ubicación</p>
+                <p className="text-gray-800">{obra.ubicacion ?? '—'}</p>
+              </div>
+              {obra.descripcion && (
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-400 mb-1">Alcance</p>
+                  <p className="text-gray-800 leading-relaxed">{obra.descripcion}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Tipo</p>
-              <p className="text-gray-800">{obra.tipo === 'obra_civil' ? 'Obra civil' : 'Servicio'}</p>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Datos de contacto</p>
+              <button
+                onClick={() => setShowContactoForm(true)}
+                className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+              >
+                + Agregar contacto
+              </button>
             </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Fecha de inicio</p>
-              <p className="text-gray-800">{new Date(obra.fecha_inicio).toLocaleDateString('es-PE')}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Fecha de fin</p>
-              <p className="text-gray-800">{new Date(obra.fecha_fin).toLocaleDateString('es-PE')}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Monto contractual</p>
-              <p className="text-gray-800">
-                {obra.monto
-                  ? `S/. ${obra.monto.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`
-                  : '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">Ubicación</p>
-              <p className="text-gray-800">{obra.ubicacion ?? '—'}</p>
-            </div>
-            {obra.descripcion && (
-              <div className="col-span-2">
-                <p className="text-xs text-gray-400 mb-1">Alcance</p>
-                <p className="text-gray-800 leading-relaxed">{obra.descripcion}</p>
+
+            {showContactoForm && (
+              <div className="bg-gray-50 rounded-xl p-4 mb-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    placeholder="Nombre *"
+                    value={contactoForm.nombre}
+                    onChange={e => setContactoForm(prev => ({ ...prev, nombre: e.target.value }))}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                  />
+                  <input
+                    placeholder="Cargo"
+                    value={contactoForm.cargo}
+                    onChange={e => setContactoForm(prev => ({ ...prev, cargo: e.target.value }))}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                  />
+                  <input
+                    placeholder="Teléfono"
+                    value={contactoForm.telefono}
+                    onChange={e => setContactoForm(prev => ({ ...prev, telefono: e.target.value }))}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                  />
+                  <input
+                    placeholder="Correo"
+                    value={contactoForm.email}
+                    onChange={e => setContactoForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowContactoForm(false); setContactoForm({ nombre: '', cargo: '', telefono: '', email: '' }) }}
+                    className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-white transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    disabled={!contactoForm.nombre.trim() || savingContacto}
+                    onClick={async () => {
+                      if (!contactoForm.nombre.trim()) return
+                      setSavingContacto(true)
+                      await createContacto({
+                        obra_id: id!,
+                        nombre: contactoForm.nombre,
+                        cargo: contactoForm.cargo || null,
+                        telefono: contactoForm.telefono || null,
+                        email: contactoForm.email || null,
+                      })
+                      setContactoForm({ nombre: '', cargo: '', telefono: '', email: '' })
+                      setShowContactoForm(false)
+                      setSavingContacto(false)
+                    }}
+                    className="flex-1 bg-teal-600 text-white text-sm py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
+                  >
+                    {savingContacto ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
               </div>
             )}
-            {obra.notas && (
-              <div className="col-span-2">
-                <p className="text-xs text-gray-400 mb-1">Notas internas</p>
-                <p className="text-gray-800 leading-relaxed">{obra.notas}</p>
+
+            {loadingCont ? (
+              <p className="text-sm text-gray-400">Cargando...</p>
+            ) : contactos.length === 0 ? (
+              <p className="text-sm text-gray-400">No hay contactos registrados.</p>
+            ) : (
+              <div className="space-y-3">
+                {contactos.map(c => (
+                  <div key={c.id} className="flex items-start justify-between gap-3 py-3 border-b border-gray-100 last:border-0">
+                    <div className="text-sm">
+                      <p className="font-medium text-gray-800">{c.nombre}</p>
+                      {c.cargo && <p className="text-gray-500 text-xs mt-0.5">{c.cargo}</p>}
+                      <div className="flex gap-3 mt-1">
+                        {c.telefono && (
+                          <a href={`tel:${c.telefono}`} className="text-xs text-teal-600 hover:text-teal-700">
+                            {c.telefono}
+                          </a>
+                        )}
+                        {c.email && (
+                          <a href={`mailto:${c.email}`} className="text-xs text-teal-600 hover:text-teal-700">
+                            {c.email}
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteContacto(c.id)}
+                      className="text-gray-300 hover:text-red-400 transition-colors text-lg leading-none flex-shrink-0"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-          <div className="mt-6 pt-5 border-t border-gray-100">
+
+          <div className="pt-1">
             <button
-              onClick={() => navigate(`/obras/${obra.id}/editar`)}
+              onClick={() => navigate(`/proyectos/${obra.id}/editar`)}
               className="text-sm text-teal-600 hover:text-teal-700 font-medium"
             >
               Editar información →
@@ -300,11 +429,57 @@ export default function ObraDetallePage() {
             <p className="text-sm text-gray-400 text-center py-8">No hay inspecciones registradas.</p>
             ) : (
             checklists.map(c => (
-                <ChecklistResumen key={c.id} checklist={c} />
-            ))
+            <ChecklistResumen
+              key={c.id}
+              checklist={c}
+              onDelete={deleteChecklist}
+            />
+          ))
             )}
         </div>
       )}
+
+      {tab === 'auditoria' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm text-gray-500">
+              {auditorias.length} auditorías registradas
+            </p>
+            {!showAuditoriaForm && (
+              <button
+                onClick={() => setShowAuditoriaForm(true)}
+                className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                + Nueva auditoría
+              </button>
+            )}
+          </div>
+
+          {showAuditoriaForm && (
+            <AuditoriaForm
+              obraId={id!}
+              onSave={async (a) => { await createAuditoria(a); setShowAuditoriaForm(false) }}
+              onCancel={() => setShowAuditoriaForm(false)}
+            />
+          )}
+
+          {loadingA ? (
+            <p className="text-sm text-gray-400 text-center py-8">Cargando...</p>
+          ) : auditorias.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">No hay auditorías registradas.</p>
+          ) : (
+            auditorias.map(a => (
+              <AuditoriaResumen
+                key={a.id}
+                auditoria={a}
+                onDelete={deleteAuditoria}
+              />
+            ))
+          )}
+        </div>
+      )}
+
     </div>
+
   )
 }

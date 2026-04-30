@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
 const navItems = [
-  { to: '/obras', label: 'Obras' },
+  { to: '/proyectos', label: 'Proyectos' },
   { to: '/campo', label: 'Campo' },
   { to: '/seguridad', label: 'Seguridad' },
 ]
@@ -10,7 +10,7 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="font-medium text-gray-900">Yanashpa — Obras</span>
+        <span className="font-medium text-gray-900">Yanashpa Proyectos</span>
         <nav className="flex gap-1">
           {navItems.map(item => (
             <NavLink

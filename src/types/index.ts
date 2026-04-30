@@ -2,15 +2,24 @@ export interface Obra {
   id: string
   nombre: string
   contratista: string
-  tipo: 'obra_civil' | 'servicio'
+  tipo: 'obra_civil' | 'mantenimiento' | 'jardineria' | 'carpinteria'
   monto: number | null
   fecha_inicio: string
   fecha_fin: string
   estado: 'activa' | 'pausada' | 'cerrada'
   ubicacion: string | null
   descripcion: string | null
-  nro_contrato: string | null
-  notas: string | null
+  ruc: string | null
+  created_at: string
+}
+
+export interface Contacto {
+  id: string
+  obra_id: string
+  nombre: string
+  cargo: string | null
+  telefono: string | null
+  email: string | null
   created_at: string
 }
 
@@ -52,5 +61,15 @@ export interface Checklist {
   estado_general: 'ok' | 'observado' | 'critico'
   observaciones: string | null
   fotos_url: string[] | null
+  created_at: string
+}
+
+export interface Auditoria {
+  id: string
+  obra_id: string
+  fecha_auditoria: string
+  respuestas: Record<string, 'cuenta' | 'no_cuenta'>
+  estado_general: 'ok' | 'observado' | 'critico'
+  observaciones: string | null
   created_at: string
 }
