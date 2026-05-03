@@ -164,7 +164,13 @@ export default function RecorridoDetallePage() {
       }
 
       const fileName = `Recorrido_${titulo.replace(/\s+/g, '_')}_${recorrido.fecha}.pdf`
-      doc.save(fileName)
+      const blob = doc.output('blob')
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = fileName
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
     } finally {
       setGenerandoPDF(false)
     }
