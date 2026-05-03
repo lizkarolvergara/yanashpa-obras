@@ -15,7 +15,7 @@ export function useRecorridos() {
     const { data } = await supabase
       .from('recorridos')
       .select('*')
-      .order('fecha', { ascending: false })
+      .order('created_at', { ascending: false })
     setRecorridos(data ?? [])
     setLoading(false)
   }

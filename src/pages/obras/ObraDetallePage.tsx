@@ -59,6 +59,13 @@ export default function ObraDetallePage() {
   const { contactos, loading: loadingCont, createContacto, deleteContacto } = useContactos(id!)
   const [editingContactoId, setEditingContactoId] = useState<string | null>(null)
   const [editContactoForm, setEditContactoForm] = useState({ nombre: '', cargo: '', telefono: '', email: '' })
+  const [copiadoId, setCopiadoId] = useState<string | null>(null)
+
+  function copiar(texto: string, key: string) {
+    navigator.clipboard.writeText(texto)
+    setCopiadoId(key)
+    setTimeout(() => setCopiadoId(null), 2000)
+  }
   const [savingEditContacto, setSavingEditContacto] = useState(false)
   const [confirmandoContacto, setConfirmandoContacto] = useState(false)
 
@@ -500,15 +507,21 @@ export default function ObraDetallePage() {
                                 {c.telefono}
                               </a>
                               <button
-                                onClick={() => navigator.clipboard.writeText(c.telefono!)}
+                                onClick={() => copiar(c.telefono!, `tel-${c.id}`)}
                                 className="text-gray-400 hover:text-teal-600 transition-colors"
                                 title="Copiar teléfono"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                  <path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" />
-                                  <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
-                                </svg>
+                                {copiadoId === `tel-${c.id}` ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5 12l5 5L20 7" />
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" />
+                                    <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
+                                  </svg>
+                                )}
                               </button>
                             </div>
                           )}
@@ -518,15 +531,21 @@ export default function ObraDetallePage() {
                                 {c.email}
                               </a>
                               <button
-                                onClick={() => navigator.clipboard.writeText(c.email!)}
+                                onClick={() => copiar(c.email!, `email-${c.id}`)}
                                 className="text-gray-400 hover:text-teal-600 transition-colors"
                                 title="Copiar correo"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                  <path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" />
-                                  <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
-                                </svg>
+                                {copiadoId === `email-${c.id}` ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M5 12l5 5L20 7" />
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666" />
+                                    <path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1" />
+                                  </svg>
+                                )}
                               </button>
                             </div>
                           )}
