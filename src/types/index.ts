@@ -1,6 +1,7 @@
 export interface Obra {
   id: string
   nombre: string
+  nombre_corto: string | null
   contratista: string
   tipo: 'obra_civil' | 'mantenimiento' | 'jardineria' | 'carpinteria'
   monto: number | null
@@ -53,6 +54,14 @@ export interface NotaCampo {
   fecha: string
 }
 
+export interface BitacoraEntry {
+  id: string
+  obra_id: string
+  contenido: string
+  foto_url: string | null
+  fecha: string
+}
+
 export interface Checklist {
   id: string
   obra_id: string
@@ -71,5 +80,25 @@ export interface Auditoria {
   respuestas: Record<string, 'cuenta' | 'no_cuenta'>
   estado_general: 'ok' | 'observado' | 'critico'
   observaciones: string | null
+  created_at: string
+}
+
+export interface Recorrido {
+  id: string
+  fecha: string
+  titulo: string | null
+  participantes: string | null
+  descripcion: string | null
+  created_at: string
+}
+
+export interface ObservacionRecorrido {
+  id: string
+  recorrido_id: string
+  descripcion: string
+  area_zona: string | null
+  foto_url: string | null
+  fotos_url: string[] | null
+  orden: number
   created_at: string
 }

@@ -4,16 +4,32 @@ import { useObras } from '../../hooks/useObras'
 import { useObra } from '../../hooks/useObra'
 
 const camposVacios = {
+  nombre_corto: '',
   nombre: '',
   contratista: '',
   tipo: 'obra_civil' as 'obra_civil' | 'mantenimiento' | 'jardineria' | 'carpinteria',
   monto: '',
   fecha_inicio: '',
+  plazo_dias: '',   // nuevo campo UI — no se persiste en BD
   fecha_fin: '',
   estado: 'activa' as 'activa' | 'pausada' | 'cerrada',
   ubicacion: '',
   descripcion: '',
   ruc: '',
+}
+
+/** Suma N días calendario a una fecha ISO (YYYY-MM-DD) */
+function sumarDias(fechaIso: string, dias: number): string {
+  const d = new Date(fechaIso + 'T00:00:00')
+  d.setDate(d.getDate() + dias)
+  return d.toISOString().split('T')[0]
+}
+
+/** Diferencia en días calendarios entre dos fechas ISO */
+function difDias(inicio: string, fin: string): number {
+  const a = new Date(inicio + 'T00:00:00')
+  const b = new Date(fin + 'T00:00:00')
+  return Math.round((b.getTime() - a.getTime()) / 86400000)
 }
 
 export default function ObraFormPage() {
@@ -30,24 +46,50 @@ export default function ObraFormPage() {
 
   useEffect(() => {
     if (esEdicion && obra) {
+      const plazo = obra.fecha_inicio && obra.fecha_fin
+        ? difDias(obra.fecha_inicio, obra.fecha_fin).toString()
+        : ''
       setForm({
-        nombre:            obra.nombre,
-        contratista:       obra.contratista,
-        tipo:              obra.tipo,
-        monto:             obra.monto?.toString() ?? '',
-        fecha_inicio:      obra.fecha_inicio,
-        fecha_fin:         obra.fecha_fin,
-        estado:            obra.estado,
-        ubicacion:         obra.ubicacion ?? '',
-        descripcion:       obra.descripcion ?? '',
-        ruc:               obra.ruc ?? '',
-
+        nombre_corto: obra.nombre_corto ?? '',
+        nombre:      obra.nombre,
+        contratista: obra.contratista,
+        tipo:        obra.tipo,
+        monto:       obra.monto?.toString() ?? '',
+        fecha_inicio: obra.fecha_inicio,
+        plazo_dias:  plazo,
+        fecha_fin:   obra.fecha_fin,
+        estado:      obra.estado,
+        ubicacion:   obra.ubicacion ?? '',
+        descripcion: obra.descripcion ?? '',
+        ruc:         obra.ruc ?? '',
       })
     }
   }, [obra])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+
+    setForm(prev => {
+      const next = { ...prev, [name]: value }
+
+      // Si cambia fecha_inicio y hay plazo → recalcula fecha_fin
+      if (name === 'fecha_inicio' && next.plazo_dias && parseInt(next.plazo_dias) > 0) {
+        next.fecha_fin = sumarDias(value, parseInt(next.plazo_dias))
+      }
+
+      // Si cambia plazo_dias y hay fecha_inicio → recalcula fecha_fin
+      if (name === 'plazo_dias' && next.fecha_inicio && parseInt(value) > 0) {
+        next.fecha_fin = sumarDias(next.fecha_inicio, parseInt(value))
+      }
+
+      // Si cambia fecha_fin manualmente → recalcula plazo si hay fecha_inicio
+      if (name === 'fecha_fin' && next.fecha_inicio && value) {
+        const dias = difDias(next.fecha_inicio, value)
+        next.plazo_dias = dias > 0 ? dias.toString() : ''
+      }
+
+      return next
+    })
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,11 +98,17 @@ export default function ObraFormPage() {
     setError(null)
     try {
       const payload = {
-        ...form,
-        monto:             form.monto ? parseFloat(form.monto) : null,
-        ubicacion:         form.ubicacion || null,
-        descripcion:       form.descripcion || null,
-        ruc:               form.ruc || null,
+        nombre_corto: form.nombre_corto.trim() || null,
+        nombre:      form.nombre,
+        contratista: form.contratista,
+        tipo:        form.tipo,
+        monto:       form.monto ? parseFloat(form.monto) : null,
+        fecha_inicio: form.fecha_inicio,
+        fecha_fin:   form.fecha_fin,
+        estado:      form.estado,
+        ubicacion:   form.ubicacion || null,
+        descripcion: form.descripcion || null,
+        ruc:         form.ruc || null,
       }
       if (esEdicion) {
         await updateObra(id!, payload)
@@ -105,14 +153,25 @@ export default function ObraFormPage() {
         )}
 
         <div>
-          <label className="block text-sm text-gray-600 mb-1.5">Nombre del proyecto *</label>
+          <label className="block text-sm text-gray-600 mb-1.5">Alias</label>
+          <input
+            name="nombre_corto"
+            value={form.nombre_corto}
+            onChange={handleChange}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+            placeholder="Ej: Mantenimiento de techo clubhouse"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-600 mb-1.5">Nombre contractual *</label>
           <input
             name="nombre"
             value={form.nombre}
             onChange={handleChange}
             required
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-            placeholder="Ej: Construcción de cerco perimétrico"
+            placeholder="Ej: SERVICIO DE CONSTRUCCIÓN DE CERCO PERIMÉTRICO..."
           />
         </div>
 
@@ -171,29 +230,48 @@ export default function ObraFormPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-gray-600 mb-1.5">Fecha de inicio *</label>
-            <input
-              type="date"
-              name="fecha_inicio"
-              value={form.fecha_inicio}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-            />
+        {/* Fechas + plazo */}
+        <div>
+          <p className="text-sm text-gray-600 mb-2">Plazo contractual *</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Fecha de inicio</label>
+              <input
+                type="date"
+                name="fecha_inicio"
+                value={form.fecha_inicio}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Plazo (días cal.)</label>
+              <input
+                type="number"
+                name="plazo_dias"
+                value={form.plazo_dias}
+                onChange={handleChange}
+                min="1"
+                placeholder="Ej: 90"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Fecha de fin</label>
+              <input
+                type="date"
+                name="fecha_fin"
+                value={form.fecha_fin}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm text-gray-600 mb-1.5">Fecha de fin *</label>
-            <input
-              type="date"
-              name="fecha_fin"
-              value={form.fecha_fin}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-            />
-          </div>
+          <p className="text-xs text-gray-400 mt-1.5">
+            Ingresa fecha de inicio y plazo para calcular automáticamente la fecha de fin, o edita cualquier campo manualmente.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -231,53 +309,6 @@ export default function ObraFormPage() {
             placeholder="Describe brevemente el alcance contractual..."
           />
         </div>
-
-        {/* <div className="border-t border-gray-100 pt-5">
-          <p className="text-sm font-medium text-gray-700 mb-4">Datos de contacto</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Nombre</label>
-              <input
-                name="contacto_nombre"
-                value={form.contacto_nombre}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-                placeholder="Nombre del contacto"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Cargo</label>
-              <input
-                name="contacto_cargo"
-                value={form.contacto_cargo}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-                placeholder="Ej: Residente de obra"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Teléfono</label>
-              <input
-                name="contacto_telefono"
-                value={form.contacto_telefono}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-                placeholder="9xxxxxxxx"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">Correo</label>
-              <input
-                type="email"
-                name="contacto_email"
-                value={form.contacto_email}
-                onChange={handleChange}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-                placeholder="correo@empresa.com"
-              />
-            </div>
-          </div>
-        </div> */}
 
         <div className="flex gap-3 pt-2">
           <button

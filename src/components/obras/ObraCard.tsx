@@ -5,6 +5,7 @@ interface Props {
   obra: Obra
   onClick: () => void
 }
+
 function formatTipo(tipo: string) {
   const tipos: Record<string, string> = {
     obra_civil:    'Obra civil',
@@ -20,13 +21,15 @@ export default function ObraCard({ obra, onClick }: Props) {
     (new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   )
 
+  const displayNombre = obra.nombre_corto ?? obra.nombre
+
   return (
     <div
       onClick={onClick}
       className="bg-white border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-teal-300 hover:shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <h2 className="font-medium text-gray-900 leading-snug">{obra.nombre}</h2>
+        <h2 className="font-medium text-gray-900 leading-snug">{displayNombre}</h2>
         <EstadoBadge estado={obra.estado} />
       </div>
 
@@ -34,8 +37,10 @@ export default function ObraCard({ obra, onClick }: Props) {
 
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">RUC</p>
-          <p className="text-gray-700">{obra.ruc ?? '—'}</p>
+          <p className="text-xs text-gray-400 mb-0.5">Fecha inicio</p>
+          <p className="text-gray-700">
+            {new Date(obra.fecha_inicio).toLocaleDateString('es-PE')}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
