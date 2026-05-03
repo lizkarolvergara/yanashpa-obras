@@ -14,7 +14,6 @@ import AuditoriaResumen from '../../components/seguridad/AuditoriaResumen'
 import { useBitacora } from '../../hooks/useBitacora'
 import BitacoraCard from '../../components/bitacora/BitacoraCard'
 import { supabase } from '../../lib/supabase'
-import type { Pendiente } from '../../types'
 
 type Tab = 'pendientes' | 'bitacora' | 'seguridad' | 'auditoria'
 
@@ -33,7 +32,7 @@ export default function SeguimientoDetallePage() {
 
   // Pendientes
   const [showPendienteForm, setShowPendienteForm] = useState(false)
-  const { pendientes, loading: loadingP, createPendiente, toggleEstado, deletePendiente } = usePendientes(id!)
+  const { pendientes, loading: loadingP, createPendiente, toggleEstado, updatePendiente, deletePendiente } = usePendientes(id!)
 
   // Bitácora
   const { entradas, loading: loadingB, createEntrada, updateEntrada, deleteEntrada } = useBitacora(id!)
@@ -50,14 +49,6 @@ export default function SeguimientoDetallePage() {
   // Auditorías
   const [showAuditoriaForm, setShowAuditoriaForm] = useState(false)
   const { auditorias, loading: loadingA, createAuditoria, deleteAuditoria } = useAuditorias(id!)
-
-  async function updatePendiente(
-    pendienteId: string,
-    campos: Partial<Pick<Pendiente, 'descripcion' | 'responsable' | 'fecha_limite' | 'prioridad'>>
-  ) {
-    const { error } = await supabase.from('pendientes').update(campos).eq('id', pendienteId)
-    if (error) throw error
-  }
 
   async function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
