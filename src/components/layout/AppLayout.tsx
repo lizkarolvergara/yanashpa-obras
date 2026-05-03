@@ -84,6 +84,9 @@ export default function AppLayout() {
       <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full">
         <Outlet />
       </main>
+      <footer className="text-center text-xs text-gray-400 py-4 border-t border-gray-100">
+        Liz Karol Vergara · 2026
+      </footer>
     </div>
   )
 }
