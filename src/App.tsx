@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
+import InicioPage from './pages/inicio/InicioPage'
 import ObrasPage from './pages/obras/ObrasPage'
 import ObraFormPage from './pages/obras/ObraFormPage'
 import ObraDetallePage from './pages/obras/ObraDetallePage'
@@ -14,7 +15,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/proyectos" replace />} />
+          <Route index element={<InicioPage />} />
           <Route path="proyectos" element={<ObrasPage />} />
           <Route path="proyectos/nuevo" element={<ObraFormPage />} />
           <Route path="proyectos/:id" element={<ObraDetallePage />} />
