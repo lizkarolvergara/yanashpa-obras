@@ -25,20 +25,14 @@ function getIcono(url: string) {
 }
 
 async function descargarArchivo(url: string, nombre: string) {
-  try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const blobUrl = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = nombre
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(blobUrl)
-  } catch {
-    window.open(url, '_blank')
-  }
+  const link = document.createElement('a')
+  link.href = url
+  link.download = nombre
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) {

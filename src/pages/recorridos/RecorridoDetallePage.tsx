@@ -177,20 +177,59 @@ export default function RecorridoDetallePage() {
   }
 
   async function fetchImageWithDimensions(url: string): Promise<{ imgData: string; width: number; height: number }> {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const imgData = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-    const { width, height } = await new Promise<{ width: number; height: number }>((resolve) => {
+    // Cargamos la imagen via canvas para evitar problemas CORS en producción
+    return new Promise((resolve, reject) => {
       const img = new Image()
-      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
-      img.src = imgData
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.naturalWidth
+          canvas.height = img.naturalHeight
+          const ctx = canvas.getContext('2d')!
+          ctx.drawImage(img, 0, 0)
+          const imgData = canvas.toDataURL('image/jpeg', 0.85)
+          resolve({ imgData, width: img.naturalWidth, height: img.naturalHeight })
+        } catch {
+          // Si canvas falla (tainted), intentar con fetch directo
+          fetch(url, { headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY } })
+            .then(r => r.blob())
+            .then(blob => new Promise<string>((res, rej) => {
+              const reader = new FileReader()
+              reader.onload = () => res(reader.result as string)
+              reader.onerror = rej
+              reader.readAsDataURL(blob)
+            }))
+            .then(imgData => {
+              const i = new Image()
+              i.onload = () => resolve({ imgData, width: i.naturalWidth, height: i.naturalHeight })
+              i.src = imgData
+            })
+            .catch(reject)
+        }
+      }
+      img.onerror = () => {
+        // Si crossOrigin falla, intentar sin él
+        const img2 = new Image()
+        img2.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img2.naturalWidth
+          canvas.height = img2.naturalHeight
+          const ctx = canvas.getContext('2d')
+          if (!ctx) return reject(new Error('no canvas'))
+          try {
+            ctx.drawImage(img2, 0, 0)
+            const imgData = canvas.toDataURL('image/jpeg', 0.85)
+            resolve({ imgData, width: img2.naturalWidth, height: img2.naturalHeight })
+          } catch {
+            reject(new Error('tainted canvas'))
+          }
+        }
+        img2.onerror = reject
+        img2.src = url
+      }
+      img.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now()
     })
-    return { imgData, width, height }
   }
 
   if (!recorrido) return (
