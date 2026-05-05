@@ -291,7 +291,13 @@ export default function SeguimientoDetallePage() {
             <p className="text-sm text-gray-400 text-center py-8">No hay inspecciones registradas.</p>
           ) : (
             checklists.map(c => (
-              <ChecklistResumen key={c.id} checklist={c} onDelete={deleteChecklist} />
+              <ChecklistResumen
+                key={c.id}
+                checklist={c}
+                onDelete={deleteChecklist}
+                obraNombre={obra.nombre_corto ?? obra.nombre}
+                obraContratista={obra.contratista}
+              />
             ))
           )}
         </div>
