@@ -84,7 +84,7 @@ export default function RecorridoDetallePage() {
 
       // Título
       const titulo = recorrido.titulo ?? 'Recorrido de campo'
-      const fechaStr = new Date(recorrido.fecha).toLocaleDateString('es-PE', {
+      const fechaStr = new Date(recorrido.fecha + 'T12:00:00').toLocaleDateString('es-PE', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
       })
 
