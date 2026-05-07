@@ -39,9 +39,9 @@ export default function SeguimientoPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {obras.map(obra => {
-            const diasRestantes = Math.ceil(
-              (new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-            )
+            const diasRestantes = obra.estado === 'cerrada'
+              ? null
+              : Math.ceil((new Date(obra.fecha_fin + 'T12:00:00').getTime() - Date.now()) / (1000 * 60 * 60 * 24))
             const displayNombre = obra.nombre_corto ?? obra.nombre
 
             return (
@@ -59,13 +59,13 @@ export default function SeguimientoPage() {
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Fecha inicio</p>
                     <p className="text-gray-700">
-                      {new Date(obra.fecha_inicio).toLocaleDateString('es-PE')}
+                      {new Date(obra.fecha_inicio + 'T12:00:00').toLocaleDateString('es-PE')}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
                     <p className="text-gray-700">
-                      {new Date(obra.fecha_fin).toLocaleDateString('es-PE')}
+                      {new Date(obra.fecha_fin + 'T12:00:00').toLocaleDateString('es-PE')}
                     </p>
                   </div>
                   <div>
@@ -74,8 +74,12 @@ export default function SeguimientoPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">Días restantes</p>
-                    <p className={diasRestantes < 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
-                      {diasRestantes < 0 ? `Vencido (${Math.abs(diasRestantes)}d)` : `${diasRestantes}d`}
+                    <p className={diasRestantes !== null && diasRestantes < 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
+                      {diasRestantes === null
+                        ? '—'
+                        : diasRestantes < 0
+                        ? `Vencido (${Math.abs(diasRestantes)}d)`
+                        : `${diasRestantes}d`}
                     </p>
                   </div>
                 </div>

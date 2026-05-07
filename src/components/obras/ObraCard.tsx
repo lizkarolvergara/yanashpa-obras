@@ -39,13 +39,13 @@ export default function ObraCard({ obra, onClick }: Props) {
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha inicio</p>
           <p className="text-gray-700">
-            {new Date(obra.fecha_inicio).toLocaleDateString('es-PE')}
+            {new Date(obra.fecha_inicio + 'T12:00:00').toLocaleDateString('es-PE')}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
           <p className="text-gray-700">
-            {new Date(obra.fecha_fin).toLocaleDateString('es-PE')}
+            {new Date(obra.fecha_fin + 'T12:00:00').toLocaleDateString('es-PE')}
           </p>
         </div>
         <div>
