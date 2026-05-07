@@ -4,6 +4,7 @@ import { useRecorridos } from '../../hooks/useRecorridos'
 import { useObservaciones } from '../../hooks/useObservaciones'
 import ObservacionItem from '../../components/recorridos/ObservacionItem'
 import { supabase } from '../../lib/supabase'
+import { comprimirImagen } from '../../lib/comprimirImagen'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -42,11 +43,11 @@ export default function RecorridoDetallePage() {
     try {
       const urlsSubidas: string[] = []
       for (const { file } of fotosNuevas) {
-        const ext = file.name.split('.').pop()
-        const path = `recorridos/${id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+        const blob = await comprimirImagen(file)
+        const path = `recorridos/${id}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
         const { error: uploadError } = await supabase.storage
           .from('documentos')
-          .upload(path, file, { upsert: true })
+          .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
         if (!uploadError) {
           const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(path)
           urlsSubidas.push(urlData.publicUrl)

@@ -7,7 +7,7 @@ type Filtro = 'todas' | 'activa' | 'pausada' | 'cerrada'
 
 export default function ObrasPage() {
   const { obras, loading, error } = useObras()
-  const [filtro, setFiltro] = useState<Filtro>('todas')
+  const [filtro, setFiltro] = useState<Filtro>('activa')
   const navigate = useNavigate()
 
   const filtros: { value: Filtro; label: string }[] = [

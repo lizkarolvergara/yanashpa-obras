@@ -17,9 +17,9 @@ function formatTipo(tipo: string) {
 }
 
 export default function ObraCard({ obra, onClick }: Props) {
-  const diasRestantes = Math.ceil(
-    (new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  )
+  const diasRestantes = obra.estado === 'cerrada'
+    ? null
+    : Math.ceil((new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
 
   const displayNombre = obra.nombre_corto ?? obra.nombre
 
@@ -56,8 +56,12 @@ export default function ObraCard({ obra, onClick }: Props) {
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Días restantes</p>
-          <p className={diasRestantes < 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
-            {diasRestantes < 0 ? `Vencido (${Math.abs(diasRestantes)}d)` : `${diasRestantes}d`}
+          <p className={diasRestantes !== null && diasRestantes < 0 ? 'text-red-600 font-medium' : 'text-gray-700'}>
+            {diasRestantes === null
+              ? '—'
+              : diasRestantes < 0
+              ? `Vencido (${Math.abs(diasRestantes)}d)`
+              : `${diasRestantes}d`}
           </p>
         </div>
       </div>

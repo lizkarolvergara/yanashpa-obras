@@ -46,7 +46,7 @@ export default function ObraDetallePage() {
   // Notas
   const [notaTexto, setNotaTexto] = useState('')
   const [savingNota, setSavingNota] = useState(false)
-  const { notas, loading: loadingN, createNota, deleteNota } = useNotas(id!)
+  const { notas, loading: loadingN, createNota, updateNota, deleteNota } = useNotas(id!)
 
   // Documentos
   const [showUploader, setShowUploader] = useState(false)
@@ -81,12 +81,6 @@ export default function ObraDetallePage() {
     // La forma más limpia es recargar el hook; si useDocumentos tiene un refetch, úsalo.
     // Por ahora hacemos reload silencioso via window:
     window.dispatchEvent(new Event('yanashpa:refetch-documentos'))
-  }
-
-  async function updateNota(notaId: string, contenido: string) {
-    const { error } = await supabase.from('notas_campo').update({ contenido }).eq('id', notaId)
-    if (error) throw error
-    window.dispatchEvent(new Event('yanashpa:refetch-notas'))
   }
 
   async function updateContacto(

@@ -41,5 +41,15 @@ export function useNotas(obraId: string) {
     setNotas(prev => prev.filter(n => n.id !== id))
   }
 
-  return { notas, loading, createNota, deleteNota }
+    async function updateNota(id: string, contenido: string) {
+    const { error } = await supabase
+      .from('notas_campo')
+      .update({ contenido })
+      .eq('id', id)
+    if (error) throw error
+    setNotas(prev => prev.map(n => n.id === id ? { ...n, contenido } : n))
+  }
+
+return { notas, loading, createNota, updateNota, deleteNota }
+
 }
