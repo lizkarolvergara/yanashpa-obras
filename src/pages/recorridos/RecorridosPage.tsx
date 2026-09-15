@@ -1,26 +1,49 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRecorridos } from '../../hooks/useRecorridos'
+import { useAuth } from '../../context/AuthContext'
+import { useIrALogin } from '../../hooks/useIrALogin'
+import TarjetasBloqueadas from '../../components/auth/TarjetasBloqueadas'
+
+/** Fecha local de hoy en formato YYYY-MM-DD (evita el desfase UTC) */
+function fechaHoy() {
+  const d = new Date()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mes}-${dia}`
+}
+
+const formVacio = { titulo: '', participantes: '', descripcion: '' }
 
 export default function RecorridosPage() {
   const navigate = useNavigate()
   const { recorridos, loading, createRecorrido } = useRecorridos()
+  const { user, loading: authLoading } = useAuth()
+  const irALogin = useIrALogin()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ titulo: '', participantes: '', descripcion: '' })
+  const [form, setForm] = useState(formVacio)
+
+  function handleNuevo() {
+    if (user) setShowForm(true)
+    else irALogin('Inicia sesión para crear un recorrido.')
+  }
 
   async function handleCrear() {
     setSaving(true)
-    const nuevo = await createRecorrido({
-      fecha:         new Date().toISOString().split('T')[0],
-      titulo:        form.titulo.trim() || null,
-      participantes: form.participantes.trim() || null,
-      descripcion:   form.descripcion.trim() || null,
-    })
-    setSaving(false)
-    setShowForm(false)
-    setForm({ titulo: '', participantes: '', descripcion: '' })
-    navigate(`/recorridos/${nuevo.id}`)
+    try {
+      const nuevo = await createRecorrido({
+        fecha:         fechaHoy(),
+        titulo:        form.titulo.trim() || null,
+        participantes: form.participantes.trim() || null,
+        descripcion:   form.descripcion.trim() || null,
+      })
+      setShowForm(false)
+      setForm(formVacio)
+      navigate(`/recorridos/${nuevo.id}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -29,7 +52,7 @@ export default function RecorridosPage() {
         <h1 className="text-xl font-medium text-gray-900">Recorridos</h1>
         {!showForm && (
           <button
-            onClick={() => setShowForm(true)}
+            onClick={handleNuevo}
             className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
           >
             + Nuevo recorrido
@@ -37,7 +60,7 @@ export default function RecorridosPage() {
         )}
       </div>
 
-      {showForm && (
+      {showForm && user && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 space-y-4">
           <p className="text-sm font-medium text-gray-700">Nuevo recorrido</p>
           <div>
@@ -69,7 +92,7 @@ export default function RecorridosPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => { setShowForm(false); setForm({ titulo: '', participantes: '', descripcion: '' }) }}
+              onClick={() => { setShowForm(false); setForm(formVacio) }}
               className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancelar
@@ -85,9 +108,9 @@ export default function RecorridosPage() {
         </div>
       )}
 
-      {loading ? (
+      {loading || authLoading ? (
         <p className="text-sm text-gray-400 text-center py-16">Cargando...</p>
-      ) : recorridos.length === 0 ? (
+      ) : user && recorridos.length === 0 ? (
         <p className="text-sm text-gray-400 text-center py-16">No hay recorridos registrados.</p>
       ) : (
         <div className="space-y-3">
@@ -115,6 +138,7 @@ export default function RecorridosPage() {
               </div>
             </div>
           ))}
+          {!user && <TarjetasBloqueadas variante="recorrido" />}
         </div>
       )}
     </div>
