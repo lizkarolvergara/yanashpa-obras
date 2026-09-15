@@ -11,6 +11,7 @@ export interface Obra {
   ubicacion: string | null
   descripcion: string | null
   ruc: string | null
+  es_demo?: boolean
   created_at: string
 }
 
@@ -89,6 +90,7 @@ export interface Recorrido {
   titulo: string | null
   participantes: string | null
   descripcion: string | null
+  es_demo?: boolean
   created_at: string
 }
 

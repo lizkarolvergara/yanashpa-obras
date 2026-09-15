@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
+import LoginPage from './pages/auth/LoginPage'
 import InicioPage from './pages/inicio/InicioPage'
 import ObrasPage from './pages/obras/ObrasPage'
 import ObraFormPage from './pages/obras/ObraFormPage'
@@ -12,21 +15,29 @@ import InformesPage from './pages/informes/InformesPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<InicioPage />} />
-          <Route path="proyectos" element={<ObrasPage />} />
-          <Route path="proyectos/nuevo" element={<ObraFormPage />} />
-          <Route path="proyectos/:id" element={<ObraDetallePage />} />
-          <Route path="proyectos/:id/editar" element={<ObraFormPage />} />
-          <Route path="seguimiento" element={<SeguimientoPage />} />
-          <Route path="seguimiento/:id" element={<SeguimientoDetallePage />} />
-          <Route path="recorridos" element={<RecorridosPage />} />
-          <Route path="recorridos/:id" element={<RecorridoDetallePage />} />
-          <Route path="informes" element={<InformesPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<InicioPage />} />
+            <Route path="proyectos" element={<ObrasPage />} />
+            <Route path="proyectos/:id" element={<ObraDetallePage />} />
+            <Route path="proyectos/:id/editar" element={<ObraFormPage />} />
+            <Route path="seguimiento" element={<SeguimientoPage />} />
+            <Route path="seguimiento/:id" element={<SeguimientoDetallePage />} />
+            <Route path="recorridos" element={<RecorridosPage />} />
+            <Route path="recorridos/:id" element={<RecorridoDetallePage />} />
+            <Route path="informes" element={<InformesPage />} />
+
+            {/* Requiere sesión */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="proyectos/nuevo" element={<ObraFormPage />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
