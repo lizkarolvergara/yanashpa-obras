@@ -17,8 +17,23 @@ export async function uploadArchivo(file: File, obraId: string): Promise<string>
   return data.publicUrl
 }
 
+/** Extrae la ruta interna del bucket a partir de la URL pública */
+function rutaDesdeUrl(url: string): string | null {
+  const ruta = url.split('/documentos/')[1]
+  return ruta ? decodeURIComponent(ruta.split('?')[0]) : null
+}
+
 export async function deleteArchivo(url: string) {
-  const path = url.split('/documentos/')[1]
-  if (!path) return
-  await supabase.storage.from('documentos').remove([path])
+  await deleteArchivos([url])
+}
+
+export async function deleteArchivos(urls: string[]) {
+  const rutas = urls
+    .map(rutaDesdeUrl)
+    .filter((r): r is string => !!r)
+
+  if (rutas.length === 0) return
+
+  const { error } = await supabase.storage.from('documentos').remove(rutas)
+  if (error) console.error('No se pudieron borrar algunos archivos:', error.message)
 }

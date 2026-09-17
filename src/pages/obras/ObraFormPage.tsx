@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useObras } from '../../hooks/useObras'
 import { useObra } from '../../hooks/useObra'
+import { useAuth } from '../../context/AuthContext'
 
 const camposVacios = {
   nombre_corto: '',
@@ -37,12 +38,21 @@ export default function ObraFormPage() {
   const { id } = useParams<{ id: string }>()
   const esEdicion = !!id
 
-  const { createObra, updateObra } = useObras()
+  const { createObra, updateObra, deleteObra } = useObras()
   const { obra, loading } = useObra(esEdicion ? id! : '')
+  const { user } = useAuth()
 
   const [form, setForm] = useState(camposVacios)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Eliminar proyecto
+  const [mostrarEliminar, setMostrarEliminar] = useState(false)
+  const [confirmTexto, setConfirmTexto] = useState('')
+  const [eliminando, setEliminando] = useState(false)
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null)
+  const nombreConfirmacion = obra ? (obra.nombre_corto ?? obra.nombre).trim() : ''
+  const confirmacionValida = confirmTexto.trim() === nombreConfirmacion
 
   useEffect(() => {
     if (esEdicion && obra) {
@@ -90,6 +100,25 @@ export default function ObraFormPage() {
 
       return next
     })
+  }
+
+  async function handleEliminar() {
+    if (!id || !confirmacionValida) return
+    setEliminando(true)
+    setErrorEliminar(null)
+    try {
+      await deleteObra(id)
+      navigate('/proyectos', { replace: true })
+    } catch (err: any) {
+      setErrorEliminar(err.message ?? 'No se pudo eliminar el proyecto.')
+      setEliminando(false)
+    }
+  }
+
+  function cancelarEliminar() {
+    setMostrarEliminar(false)
+    setConfirmTexto('')
+    setErrorEliminar(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -328,6 +357,67 @@ export default function ObraFormPage() {
         </div>
 
       </form>
+
+      {/* Zona de peligro — solo en edición y con sesión */}
+      {esEdicion && user && obra && (
+        <div className="mt-6 bg-white border border-red-200 rounded-xl p-6">
+          <h2 className="text-sm font-medium text-red-600">Eliminar proyecto</h2>
+          <p className="text-xs text-gray-500 mt-1">
+            Se eliminarán también sus pendientes, bitácora, inspecciones, auditorías,
+            notas, contactos y documentos. Esta acción no se puede deshacer.
+            Si el proyecto terminó, considera marcarlo como "Cerrado".
+          </p>
+
+          {!mostrarEliminar ? (
+            <button
+              type="button"
+              onClick={() => setMostrarEliminar(true)}
+              className="mt-4 text-sm px-4 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+            >
+              Eliminar proyecto
+            </button>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <label htmlFor="confirmar-eliminar" className="block text-sm text-gray-600">
+                Para confirmar, escribe{' '}
+                <span className="font-medium text-gray-900 select-all">{nombreConfirmacion}</span>
+              </label>
+              <input
+                id="confirmar-eliminar"
+                value={confirmTexto}
+                onChange={e => setConfirmTexto(e.target.value)}
+                autoComplete="off"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400"
+              />
+
+              {errorEliminar && (
+                <div role="alert" className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">
+                  {errorEliminar}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={cancelarEliminar}
+                  disabled={eliminando}
+                  className="flex-1 border border-gray-200 text-gray-600 text-sm py-2.5 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEliminar}
+                  disabled={!confirmacionValida || eliminando}
+                  className="flex-1 bg-red-500 text-white text-sm py-2.5 rounded-lg hover:bg-red-600 disabled:opacity-40 transition-colors"
+                >
+                  {eliminando ? 'Eliminando...' : 'Eliminar definitivamente'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
