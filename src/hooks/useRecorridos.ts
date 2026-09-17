@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import {
+  esModoDemo, esIdDemo, idDemo, ahoraIso,
+  guardarCambioDemo, aplicarCambiosDemo,
+  crearDemo, listarCreadosDemo, eliminarCreadoDemo,
+} from '../lib/demo'
 import type { Recorrido } from '../types'
 
 export function useRecorridos() {
@@ -16,11 +21,25 @@ export function useRecorridos() {
       .from('recorridos')
       .select('*')
       .order('created_at', { ascending: false })
-    setRecorridos(data ?? [])
+    setRecorridos([
+      ...listarCreadosDemo<Recorrido>('recorridos'),
+      ...(data ?? []).map(r => aplicarCambiosDemo('recorridos', r)),
+    ])
     setLoading(false)
   }
 
   async function createRecorrido(r: Omit<Recorrido, 'id' | 'created_at'>) {
+    if (await esModoDemo()) {
+      const nuevo = crearDemo<Recorrido>('recorridos', {
+        ...r,
+        id: idDemo(),
+        created_at: ahoraIso(),
+        es_demo: true,
+      })
+      setRecorridos(prev => [nuevo, ...prev])
+      return nuevo
+    }
+
     const { data, error } = await supabase
       .from('recorridos')
       .insert(r)
@@ -32,6 +51,14 @@ export function useRecorridos() {
   }
 
   async function updateRecorrido(id: string, changes: Partial<Omit<Recorrido, 'id' | 'created_at'>>) {
+    if (await esModoDemo()) {
+      guardarCambioDemo('recorridos', id, changes)
+      const actual = recorridos.find(r => r.id === id)
+      const actualizado = { ...actual, ...changes } as Recorrido
+      setRecorridos(prev => prev.map(r => r.id === id ? { ...r, ...changes } : r))
+      return actualizado
+    }
+
     const { data, error } = await supabase
       .from('recorridos')
       .update(changes)
@@ -44,6 +71,13 @@ export function useRecorridos() {
   }
 
   async function deleteRecorrido(id: string) {
+    if (await esModoDemo()) {
+      if (!esIdDemo(id)) throw new Error('El recorrido de ejemplo no se puede eliminar.')
+      eliminarCreadoDemo('recorridos', id)
+      setRecorridos(prev => prev.filter(r => r.id !== id))
+      return
+    }
+
     const { error } = await supabase
       .from('recorridos')
       .delete()

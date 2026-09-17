@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import ProtectedRoute from './components/auth/ProtectedRoute'
 import AppLayout from './components/layout/AppLayout'
 import LoginPage from './pages/auth/LoginPage'
 import InicioPage from './pages/inicio/InicioPage'
@@ -23,6 +22,7 @@ export default function App() {
           <Route path="/" element={<AppLayout />}>
             <Route index element={<InicioPage />} />
             <Route path="proyectos" element={<ObrasPage />} />
+            <Route path="proyectos/nuevo" element={<ObraFormPage />} />
             <Route path="proyectos/:id" element={<ObraDetallePage />} />
             <Route path="proyectos/:id/editar" element={<ObraFormPage />} />
             <Route path="seguimiento" element={<SeguimientoPage />} />
@@ -30,11 +30,6 @@ export default function App() {
             <Route path="recorridos" element={<RecorridosPage />} />
             <Route path="recorridos/:id" element={<RecorridoDetallePage />} />
             <Route path="informes" element={<InformesPage />} />
-
-            {/* Requiere sesión */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="proyectos/nuevo" element={<ObraFormPage />} />
-            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

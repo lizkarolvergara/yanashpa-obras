@@ -3,13 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useRecorridos } from '../../hooks/useRecorridos'
 import { useObservaciones } from '../../hooks/useObservaciones'
 import ObservacionItem from '../../components/recorridos/ObservacionItem'
-import { supabase } from '../../lib/supabase'
 import { comprimirImagen } from '../../lib/comprimirImagen'
+import { subirImagen } from '../../lib/storage'
+import { useAuth } from '../../context/AuthContext'
+import { esIdDemo } from '../../lib/demo'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { recorridos, updateRecorrido, deleteRecorrido } = useRecorridos()
+  const { recorridos, loading: loadingRecorridos, updateRecorrido, deleteRecorrido } = useRecorridos()
+  const { user } = useAuth()
+  const puedeEliminar = !!user || esIdDemo(id)  
   const recorrido = recorridos.find(r => r.id === id)
   const { observaciones, loading, createObservacion, updateObservacion, deleteObservacion } = useObservaciones(id!)
 
@@ -45,13 +49,8 @@ export default function RecorridoDetallePage() {
       for (const { file } of fotosNuevas) {
         const blob = await comprimirImagen(file)
         const path = `recorridos/${id}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
-        const { error: uploadError } = await supabase.storage
-          .from('documentos')
-          .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(path)
-          urlsSubidas.push(urlData.publicUrl)
-        }
+        const url = await subirImagen(blob, path)
+        if (url) urlsSubidas.push(url)
       }
       const [primeraFoto, ...restoFotos] = urlsSubidas
       await createObservacion({
@@ -233,8 +232,17 @@ export default function RecorridoDetallePage() {
     })
   }
 
-  if (!recorrido) return (
+  if (loadingRecorridos) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Cargando...</div>
+  )
+
+  if (!recorrido) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <p className="text-sm text-gray-500">No se encontró el recorrido.</p>
+      <button onClick={() => navigate('/recorridos')} className="text-sm text-teal-600 hover:text-teal-700">
+        ← Volver a recorridos
+      </button>
+    </div>
   )
 
   return (
@@ -308,7 +316,7 @@ export default function RecorridoDetallePage() {
                 {recorrido.titulo ?? 'Recorrido sin título'}
               </h1>
               <p className="text-sm text-gray-400">
-                {new Date(recorrido.fecha).toLocaleDateString('es-PE', {
+                {new Date(recorrido.fecha + 'T12:00:00').toLocaleDateString('es-PE', {                  
                   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                 })}
               </p>
@@ -345,15 +353,17 @@ export default function RecorridoDetallePage() {
         >
           {generandoPDF ? 'Generando...' : '↓ Exportar PDF'}
         </button>
-        <button
-          onClick={() => setConfirmandoEliminar(true)}
-          className="text-sm px-4 py-2 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
-        >
-          Eliminar recorrido
-        </button>
+        {user && (
+          <button
+            onClick={() => setConfirmandoEliminar(true)}
+            className="text-sm px-4 py-2 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
+          >
+            Eliminar recorrido
+          </button>
+        )}
       </div>
 
-      {confirmandoEliminar && (
+      {confirmandoEliminar && user && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
           <span className="text-sm text-red-600 flex-1">¿Eliminar este recorrido y todas sus observaciones?</span>
           <button

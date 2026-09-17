@@ -24,12 +24,27 @@ function getIcono(url: string) {
   return '📎'
 }
 
-async function descargarArchivo(url: string, nombre: string) {
+/** Supabase fuerza la descarga si la URL lleva ?download=nombre */
+function urlDescarga(url: string, nombre: string) {
+  const esLocal = url.startsWith('blob:')
+  const limpia = url.split('#')[0]
+  const ext = (esLocal
+    ? url.split('#archivo.')[1]
+    : limpia.split('?')[0].split('.').pop()) ?? ''
+  const archivo = ext && !nombre.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+    ? `${nombre}.${ext}`
+    : nombre
+
+  if (esLocal) return { href: limpia, archivo }
+  const sep = limpia.includes('?') ? '&' : '?'
+  return { href: `${limpia}${sep}download=${encodeURIComponent(archivo)}`, archivo }
+}
+
+function descargarArchivo(url: string, nombre: string) {
+  const { href, archivo } = urlDescarga(url, nombre)
   const link = document.createElement('a')
-  link.href = url
-  link.download = nombre
-  link.target = '_blank'
-  link.rel = 'noopener noreferrer'
+  link.href = href
+  link.download = archivo
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -49,10 +64,10 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
     version:    documento.version ?? '',
   })
 
-  async function handleDescargar() {
+  function handleDescargar() {
     setDescargando(true)
-    await descargarArchivo(documento.archivo_url, documento.nombre)
-    setDescargando(false)
+    descargarArchivo(documento.archivo_url, documento.nombre)
+    setTimeout(() => setDescargando(false), 1500)
   }
 
   async function handleGuardar() {

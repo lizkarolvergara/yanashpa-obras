@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import type { BitacoraEntry } from '../../types'
-
+import { comprimirImagen } from '../../lib/comprimirImagen'
+import { subirImagen } from '../../lib/storage'
 
 interface Props {
   entrada: BitacoraEntry
   onDelete: (id: string) => void
-  onUpdate: (id: string, contenido: string) => Promise<void>
+  onUpdate: (id: string, campos: Partial<Pick<BitacoraEntry, 'contenido' | 'foto_url'>>) => Promise<void>
 }
 
 export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
@@ -15,15 +16,61 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
   const [saving, setSaving] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
 
+  // Foto en edición: la actual (o null si se quitó) y una nueva pendiente de subir
+  const [fotoActual, setFotoActual] = useState<string | null>(entrada.foto_url)
+  const [fotoNueva, setFotoNueva] = useState<{ file: File; preview: string } | null>(null)
+  const inputCamaraRef = useRef<HTMLInputElement>(null)
+  const inputGaleriaRef = useRef<HTMLInputElement>(null)
+
+  const fotoVisible = fotoNueva?.preview ?? fotoActual
+
+  function abrirEdicion() {
+    setTexto(entrada.contenido)
+    setFotoActual(entrada.foto_url)
+    setFotoNueva(null)
+    setEditando(true)
+  }
+
+  function cerrarEdicion() {
+    setEditando(false)
+    setConfirmando(false)
+    setFotoNueva(null)
+  }
+
+  function handleSeleccionarFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFotoNueva({ file, preview: URL.createObjectURL(file) })
+    e.target.value = ''
+  }
+
+  function handleQuitarFoto() {
+    setFotoNueva(null)
+    setFotoActual(null)
+  }
+
   async function handleGuardar() {
     if (!texto.trim()) return
     setSaving(true)
-    await onUpdate(entrada.id, texto.trim())
-    setSaving(false)
-    setEditando(false)
-    setConfirmando(false)
+    try {
+      let foto_url = fotoActual
+      if (fotoNueva) {
+        const blob = await comprimirImagen(fotoNueva.file)
+        const subida = await subirImagen(blob, `bitacora/${entrada.obra_id}/${Date.now()}.jpg`)
+        if (!subida) throw new Error('No se pudo subir la foto.')
+        foto_url = subida
+      }
+      await onUpdate(entrada.id, { contenido: texto.trim(), foto_url })
+      cerrarEdicion()
+    } catch (err) {
+      console.error(err)
+      alert('No se pudo guardar la entrada. Inténtalo de nuevo.')
+    } finally {
+      setSaving(false)
+    }
   }
 
+  // ── Vista normal ──────────────────────────────────────────────────────────
   if (!editando) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -36,7 +83,7 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
             {fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
           </div>
           <button
-            onClick={() => { setTexto(entrada.contenido); setEditando(true) }}
+            onClick={abrirEdicion}
             className="text-xs text-teal-600 hover:text-teal-700 font-medium flex-shrink-0"
           >
             Editar
@@ -57,6 +104,7 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
     )
   }
 
+  // ── Vista edición ─────────────────────────────────────────────────────────
   return (
     <div className="bg-white border border-teal-200 rounded-xl p-4 space-y-3">
       <div className="text-xs text-gray-400">
@@ -64,23 +112,66 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
           weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
         })}
       </div>
+
       <textarea
         value={texto}
         onChange={e => setTexto(e.target.value)}
         rows={4}
         className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-teal-400"
       />
-      {entrada.foto_url && (
-        <img
-          src={entrada.foto_url}
-          alt="Foto de bitácora"
-          className="rounded-lg w-full object-cover max-h-48"
-        />
+
+      {fotoVisible ? (
+        <div className="relative">
+          <img
+            src={fotoVisible}
+            alt="Foto de bitácora"
+            className="rounded-lg w-full object-cover max-h-48"
+          />
+          <button
+            onClick={handleQuitarFoto}
+            aria-label="Quitar foto"
+            className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 shadow text-sm"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <input
+            ref={inputCamaraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleSeleccionarFoto}
+            className="hidden"
+          />
+          <input
+            ref={inputGaleriaRef}
+            type="file"
+            accept="image/*"
+            onChange={handleSeleccionarFoto}
+            className="hidden"
+          />
+          <button
+            onClick={() => inputCamaraRef.current?.click()}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            📷 Cámara
+          </button>
+          <button
+            onClick={() => inputGaleriaRef.current?.click()}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            🖼 Galería
+          </button>
+        </div>
       )}
+
       <div className="flex gap-2">
         <button
-          onClick={() => { setEditando(false); setConfirmando(false) }}
-          className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
+          onClick={cerrarEdicion}
+          disabled={saving}
+          className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
         >
           Cancelar
         </button>
@@ -92,6 +183,7 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
       </div>
+
       <div className="border-t border-gray-100 pt-3">
         {confirmando ? (
           <div className="flex items-center gap-2">

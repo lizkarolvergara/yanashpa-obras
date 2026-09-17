@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import type { ObservacionRecorrido } from '../../types'
-import { supabase } from '../../lib/supabase'
+import { subirImagen } from '../../lib/storage'
 
 interface Props {
   observacion: ObservacionRecorrido
@@ -39,13 +39,8 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
     try {
       const ext = file.name.split('.').pop()
       const path = `observaciones/${observacion.recorrido_id}/${observacion.id}_${Date.now()}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('documentos')
-        .upload(path, file, { upsert: true })
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(path)
-        setFotosEdit(prev => [...prev, urlData.publicUrl])
-      }
+      const url = await subirImagen(file, path)
+      if (url) setFotosEdit(prev => [...prev, url])
     } finally {
       setUploadingFoto(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

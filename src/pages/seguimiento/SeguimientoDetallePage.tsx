@@ -13,7 +13,7 @@ import AuditoriaForm from '../../components/seguridad/AuditoriaForm'
 import AuditoriaResumen from '../../components/seguridad/AuditoriaResumen'
 import { useBitacora } from '../../hooks/useBitacora'
 import BitacoraCard from '../../components/bitacora/BitacoraCard'
-import { supabase } from '../../lib/supabase'
+import { subirImagen } from '../../lib/storage'
 import { comprimirImagen } from '../../lib/comprimirImagen'
 
 type Tab = 'pendientes' | 'bitacora' | 'seguridad' | 'auditoria'
@@ -67,13 +67,7 @@ export default function SeguimientoDetallePage() {
       if (fotoFile) {
         const blob = await comprimirImagen(fotoFile)
         const path = `bitacora/${id}/${Date.now()}.jpg`
-        const { error: uploadError } = await supabase.storage
-          .from('documentos')
-          .upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
-        if (!uploadError) {
-          const { data } = supabase.storage.from('documentos').getPublicUrl(path)
-          foto_url = data.publicUrl
-        }
+        foto_url = await subirImagen(blob, path)
       }
 
       await createEntrada({

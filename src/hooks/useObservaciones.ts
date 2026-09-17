@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { ObservacionRecorrido } from '../types'
 
 export function useObservaciones(recorridoId: string) {
@@ -12,6 +13,7 @@ export function useObservaciones(recorridoId: string) {
   }, [recorridoId])
 
   async function fetch() {
+    if (esIdDemo(recorridoId)) { setObservaciones([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('observaciones_recorrido')
@@ -23,6 +25,12 @@ export function useObservaciones(recorridoId: string) {
   }
 
   async function createObservacion(obs: Omit<ObservacionRecorrido, 'id' | 'created_at'>) {
+    if (await esModoDemo()) {
+      const nueva: ObservacionRecorrido = { ...obs, id: idDemo(), created_at: ahoraIso() }
+      setObservaciones(prev => [...prev, nueva])
+      return nueva
+    }
+
     const { data, error } = await supabase
       .from('observaciones_recorrido')
       .insert(obs)
@@ -37,20 +45,24 @@ export function useObservaciones(recorridoId: string) {
     id: string,
     changes: Partial<Pick<ObservacionRecorrido, 'descripcion' | 'area_zona' | 'foto_url' | 'fotos_url'>>
   ) {
-    const { error } = await supabase
-      .from('observaciones_recorrido')
-      .update(changes)
-      .eq('id', id)
-    if (error) throw error
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('observaciones_recorrido')
+        .update(changes)
+        .eq('id', id)
+      if (error) throw error
+    }
     setObservaciones(prev => prev.map(o => o.id === id ? { ...o, ...changes } : o))
   }
 
   async function deleteObservacion(id: string) {
-    const { error } = await supabase
-      .from('observaciones_recorrido')
-      .delete()
-      .eq('id', id)
-    if (error) throw error
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('observaciones_recorrido')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    }
     setObservaciones(prev => prev.filter(o => o.id !== id))
   }
 

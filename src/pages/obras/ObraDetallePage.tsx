@@ -8,8 +8,7 @@ import { useDocumentos } from '../../hooks/useDocumentos'
 import DocumentoItem from '../../components/documentos/DocumentoItem'
 import FileUploader from '../../components/documentos/FileUploader'
 import { useContactos } from '../../hooks/useContactos'
-import { supabase } from '../../lib/supabase'
-import type { Documento } from '../../types'
+
 
 type Tab = 'info' | 'documentos' | 'notas' | 'contactos'
 
@@ -50,13 +49,13 @@ export default function ObraDetallePage() {
 
   // Documentos
   const [showUploader, setShowUploader] = useState(false)
-  const { documentos, loading: loadingD, uploadDocumento, deleteDocumento } = useDocumentos(id!)
+  const { documentos, loading: loadingD, uploadDocumento, updateDocumento, deleteDocumento } = useDocumentos(id!)
 
   // Contactos
   const [showContactoForm, setShowContactoForm] = useState(false)
   const [contactoForm, setContactoForm] = useState({ nombre: '', cargo: '', telefono: '', email: '' })
   const [savingContacto, setSavingContacto] = useState(false)
-  const { contactos, loading: loadingCont, createContacto, deleteContacto } = useContactos(id!)
+  const { contactos, loading: loadingCont, createContacto, updateContacto, deleteContacto } = useContactos(id!)  
   const [editingContactoId, setEditingContactoId] = useState<string | null>(null)
   const [editContactoForm, setEditContactoForm] = useState({ nombre: '', cargo: '', telefono: '', email: '' })
   const [copiadoId, setCopiadoId] = useState<string | null>(null)
@@ -69,33 +68,7 @@ export default function ObraDetallePage() {
   const [savingEditContacto, setSavingEditContacto] = useState(false)
   const [confirmandoContacto, setConfirmandoContacto] = useState(false)
 
-  // ── Funciones update inline (sin hook dedicado para no romper la estructura) ──
-
-  async function updateDocumento(
-    docId: string,
-    campos: Partial<Pick<Documento, 'nombre' | 'categoria' | 'descripcion' | 'version'>>
-  ) {
-    const { error } = await supabase.from('documentos').update(campos).eq('id', docId)
-    if (error) throw error
-    // Forzar refetch — useDocumentos no expone mutate, recargamos con navigate trick
-    // La forma más limpia es recargar el hook; si useDocumentos tiene un refetch, úsalo.
-    // Por ahora hacemos reload silencioso via window:
-    window.dispatchEvent(new Event('yanashpa:refetch-documentos'))
-  }
-
-  async function updateContacto(
-    contactoId: string,
-    campos: { nombre: string; cargo: string | null; telefono: string | null; email: string | null }
-  ) {
-    const { error } = await supabase.from('contactos').update(campos).eq('id', contactoId)
-    if (error) throw error
-  }
-
-  if (loading) return (
-    <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
-      Cargando...
-    </div>
-  )
+ 
 
   if (error || !obra) return (
     <div className="flex items-center justify-center py-20 text-red-500 text-sm">
@@ -274,14 +247,20 @@ export default function ObraDetallePage() {
                 onClick={async () => {
                   if (!notaTexto.trim()) return
                   setSavingNota(true)
-                  await createNota({
-                    obra_id: id!,
-                    contenido: notaTexto.trim(),
-                    foto_url: null,
-                    fecha: new Date().toISOString(),
-                  })
-                  setNotaTexto('')
-                  setSavingNota(false)
+                  try {
+                    await createNota({
+                      obra_id: id!,
+                      contenido: notaTexto.trim(),
+                      foto_url: null,
+                      fecha: new Date().toISOString(),
+                    })
+                    setNotaTexto('')
+                  } catch (err) {
+                    console.error(err)
+                    alert('No se pudo guardar la nota. Inténtalo de nuevo.')
+                  } finally {
+                    setSavingNota(false)
+                  }
                 }}
                 className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
               >
@@ -364,16 +343,22 @@ export default function ObraDetallePage() {
                     onClick={async () => {
                       if (!contactoForm.nombre.trim()) return
                       setSavingContacto(true)
-                      await createContacto({
-                        obra_id: id!,
-                        nombre:   contactoForm.nombre,
-                        cargo:    contactoForm.cargo    || null,
-                        telefono: contactoForm.telefono || null,
-                        email:    contactoForm.email    || null,
-                      })
-                      setContactoForm({ nombre: '', cargo: '', telefono: '', email: '' })
-                      setShowContactoForm(false)
-                      setSavingContacto(false)
+                      try {
+                        await createContacto({
+                          obra_id: id!,
+                          nombre:   contactoForm.nombre.trim(),
+                          cargo:    contactoForm.cargo.trim()    || null,
+                          telefono: contactoForm.telefono.trim() || null,
+                          email:    contactoForm.email.trim()    || null,
+                        })
+                        setContactoForm({ nombre: '', cargo: '', telefono: '', email: '' })
+                        setShowContactoForm(false)
+                      } catch (err) {
+                        console.error(err)
+                        alert('No se pudo guardar el contacto. Inténtalo de nuevo.')
+                      } finally {
+                        setSavingContacto(false)
+                      }
                     }}
                     className="flex-1 bg-teal-600 text-white text-sm py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
                   >
@@ -443,15 +428,21 @@ export default function ObraDetallePage() {
                             onClick={async () => {
                               if (!editContactoForm.nombre.trim()) return
                               setSavingEditContacto(true)
-                              await updateContacto(c.id, {
-                                nombre:   editContactoForm.nombre.trim(),
-                                cargo:    editContactoForm.cargo.trim()    || null,
-                                telefono: editContactoForm.telefono.trim() || null,
-                                email:    editContactoForm.email.trim()    || null,
-                              })
-                              setSavingEditContacto(false)
-                              setEditingContactoId(null)
-                              setConfirmandoContacto(false)
+                              try {
+                                await updateContacto(c.id, {
+                                  nombre:   editContactoForm.nombre.trim(),
+                                  cargo:    editContactoForm.cargo.trim()    || null,
+                                  telefono: editContactoForm.telefono.trim() || null,
+                                  email:    editContactoForm.email.trim()    || null,
+                                })
+                                setEditingContactoId(null)
+                                setConfirmandoContacto(false)
+                              } catch (err) {
+                                console.error(err)
+                                alert('No se pudo actualizar el contacto. Inténtalo de nuevo.')
+                              } finally {
+                                setSavingEditContacto(false)
+                              }
                             }}
                             className="flex-1 bg-teal-600 text-white text-sm py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
                           >

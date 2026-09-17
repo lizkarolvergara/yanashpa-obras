@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { esModoDemo, idDemo, ahoraIso } from '../lib/demo'
 import type { Auditoria } from '../types'
 
 export function useAuditorias(obraId: string) {
@@ -22,6 +23,12 @@ export function useAuditorias(obraId: string) {
   }
 
   async function createAuditoria(a: Omit<Auditoria, 'id' | 'created_at'>) {
+    if (await esModoDemo()) {
+      const nueva: Auditoria = { ...a, id: idDemo(), created_at: ahoraIso() }
+      setAuditorias(prev => [nueva, ...prev])
+      return nueva
+    }
+
     const { data, error } = await supabase
       .from('auditorias')
       .insert(a)
@@ -33,11 +40,13 @@ export function useAuditorias(obraId: string) {
   }
 
   async function deleteAuditoria(id: string) {
-    const { error } = await supabase
-      .from('auditorias')
-      .delete()
-      .eq('id', id)
-    if (error) throw error
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('auditorias')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    }
     setAuditorias(prev => prev.filter(a => a.id !== id))
   }
 

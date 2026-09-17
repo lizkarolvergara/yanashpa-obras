@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { esModoDemo, idDemo, esIdDemo } from '../lib/demo'
 import type { NotaCampo } from '../types'
 
 export function useNotas(obraId: string) {
@@ -11,6 +12,7 @@ export function useNotas(obraId: string) {
   }, [obraId])
 
   async function fetch() {
+    if (esIdDemo(obraId)) { setNotas([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('notas_campo')
@@ -22,6 +24,12 @@ export function useNotas(obraId: string) {
   }
 
   async function createNota(n: Omit<NotaCampo, 'id'>) {
+    if (await esModoDemo()) {
+      const nueva: NotaCampo = { ...n, id: idDemo() }
+      setNotas(prev => [nueva, ...prev])
+      return nueva
+    }
+
     const { data, error } = await supabase
       .from('notas_campo')
       .insert(n)
@@ -32,24 +40,27 @@ export function useNotas(obraId: string) {
     return data
   }
 
-  async function deleteNota(id: string) {
-    const { error } = await supabase
-      .from('notas_campo')
-      .delete()
-      .eq('id', id)
-    if (error) throw error
-    setNotas(prev => prev.filter(n => n.id !== id))
-  }
-
-    async function updateNota(id: string, contenido: string) {
-    const { error } = await supabase
-      .from('notas_campo')
-      .update({ contenido })
-      .eq('id', id)
-    if (error) throw error
+  async function updateNota(id: string, contenido: string) {
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('notas_campo')
+        .update({ contenido })
+        .eq('id', id)
+      if (error) throw error
+    }
     setNotas(prev => prev.map(n => n.id === id ? { ...n, contenido } : n))
   }
 
-return { notas, loading, createNota, updateNota, deleteNota }
+  async function deleteNota(id: string) {
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('notas_campo')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    }
+    setNotas(prev => prev.filter(n => n.id !== id))
+  }
 
+  return { notas, loading, createNota, updateNota, deleteNota }
 }

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useObras } from '../../hooks/useObras'
 import { useAuth } from '../../context/AuthContext'
-import { useIrALogin } from '../../hooks/useIrALogin'
 import ObraCard from '../../components/obras/ObraCard'
 import TarjetasBloqueadas from '../../components/auth/TarjetasBloqueadas'
 
@@ -11,7 +10,6 @@ type Filtro = 'todas' | 'activa' | 'pausada' | 'cerrada'
 export default function ObrasPage() {
   const { obras, loading, error } = useObras()
   const { user, loading: authLoading } = useAuth()
-  const irALogin = useIrALogin()
   const [filtro, setFiltro] = useState<Filtro>('activa')
   const navigate = useNavigate()
 
@@ -27,10 +25,9 @@ export default function ObrasPage() {
     : obras.filter(o => o.estado === filtro)
 
   function handleNuevo() {
-    if (user) navigate('/proyectos/nuevo')
-    else irALogin('Inicia sesión para crear un proyecto.', '/proyectos/nuevo')
+    navigate('/proyectos/nuevo')
   }
-
+  
   if (loading || authLoading) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
       Cargando proyectos...

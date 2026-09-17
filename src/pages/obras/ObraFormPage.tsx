@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useObras } from '../../hooks/useObras'
 import { useObra } from '../../hooks/useObra'
 import { useAuth } from '../../context/AuthContext'
+import { esIdDemo } from '../../lib/demo'
 
 const camposVacios = {
   nombre_corto: '',
@@ -147,7 +148,8 @@ export default function ObraFormPage() {
         navigate('/proyectos')
       }
     } catch (err: any) {
-      setError(err.message)
+      console.error('Error al guardar el proyecto:', err)
+      setError(err.message ?? 'No se pudo guardar el proyecto.')
     } finally {
       setSaving(false)
     }
@@ -359,7 +361,7 @@ export default function ObraFormPage() {
       </form>
 
       {/* Zona de peligro — solo en edición y con sesión */}
-      {esEdicion && user && obra && (
+      {esEdicion && obra && (user || esIdDemo(obra.id)) && (
         <div className="mt-6 bg-white border border-red-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-red-600">Eliminar proyecto</h2>
           <p className="text-xs text-gray-500 mt-1">

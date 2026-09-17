@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRecorridos } from '../../hooks/useRecorridos'
 import { useAuth } from '../../context/AuthContext'
-import { useIrALogin } from '../../hooks/useIrALogin'
 import TarjetasBloqueadas from '../../components/auth/TarjetasBloqueadas'
 
 /** Fecha local de hoy en formato YYYY-MM-DD (evita el desfase UTC) */
@@ -19,14 +18,12 @@ export default function RecorridosPage() {
   const navigate = useNavigate()
   const { recorridos, loading, createRecorrido } = useRecorridos()
   const { user, loading: authLoading } = useAuth()
-  const irALogin = useIrALogin()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(formVacio)
 
   function handleNuevo() {
-    if (user) setShowForm(true)
-    else irALogin('Inicia sesión para crear un recorrido.')
+    setShowForm(true)
   }
 
   async function handleCrear() {
@@ -41,6 +38,9 @@ export default function RecorridosPage() {
       setShowForm(false)
       setForm(formVacio)
       navigate(`/recorridos/${nuevo.id}`)
+    } catch (err: any) {
+      console.error('Error al crear el recorrido:', err)
+      alert(`No se pudo crear el recorrido: ${err?.message ?? err}`)
     } finally {
       setSaving(false)
     }
@@ -60,7 +60,7 @@ export default function RecorridosPage() {
         )}
       </div>
 
-      {showForm && user && (
+      {showForm && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 space-y-4">
           <p className="text-sm font-medium text-gray-700">Nuevo recorrido</p>
           <div>

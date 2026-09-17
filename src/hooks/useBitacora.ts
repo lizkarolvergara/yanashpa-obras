@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { esModoDemo, idDemo } from '../lib/demo'
 import type { BitacoraEntry } from '../types'
 
 export function useBitacora(obraId: string) {
@@ -23,6 +24,12 @@ export function useBitacora(obraId: string) {
   }
 
   async function createEntrada(entrada: Omit<BitacoraEntry, 'id'>) {
+    if (await esModoDemo()) {
+      const nueva: BitacoraEntry = { ...entrada, id: idDemo() }
+      setEntradas(prev => [nueva, ...prev])
+      return nueva
+    }
+
     const { data, error } = await supabase
       .from('bitacora')
       .insert(entrada)
@@ -34,20 +41,24 @@ export function useBitacora(obraId: string) {
   }
 
   async function updateEntrada(id: string, contenido: string) {
-    const { error } = await supabase
-      .from('bitacora')
-      .update({ contenido })
-      .eq('id', id)
-    if (error) throw error
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('bitacora')
+        .update({ contenido })
+        .eq('id', id)
+      if (error) throw error
+    }
     setEntradas(prev => prev.map(e => e.id === id ? { ...e, contenido } : e))
   }
 
   async function deleteEntrada(id: string) {
-    const { error } = await supabase
-      .from('bitacora')
-      .delete()
-      .eq('id', id)
-    if (error) throw error
+    if (!(await esModoDemo())) {
+      const { error } = await supabase
+        .from('bitacora')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+    }
     setEntradas(prev => prev.filter(e => e.id !== id))
   }
 
