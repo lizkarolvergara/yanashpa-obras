@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import type { Auditoria } from '../../types'
+import { fechaLocal } from '../../lib/fechas'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+
 
 interface Props {
   auditoria: Auditoria
@@ -47,10 +50,9 @@ const estadoConfig = {
 }
 
 export default function AuditoriaResumen({ auditoria, onDelete }: Props) {
-  const [confirmando, setConfirmando] = useState(false)
   const [expandido, setExpandido] = useState(false)
   const estado = estadoConfig[auditoria.estado_general]
-  const fecha = new Date(auditoria.fecha_auditoria).toLocaleDateString('es-PE', {
+  const fecha = fechaLocal(auditoria.fecha_auditoria).toLocaleDateString('es-PE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   })
 
@@ -79,29 +81,11 @@ export default function AuditoriaResumen({ auditoria, onDelete }: Props) {
           >
             {expandido ? 'Ocultar' : 'Ver detalle'}
           </button>
-          {confirmando ? (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onDelete(auditoria.id)}
-                className="text-xs px-2.5 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-              >
-                Eliminar
-              </button>
-              <button
-                onClick={() => setConfirmando(false)}
-                className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setConfirmando(true)}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
-            >
-              Eliminar
-            </button>
-          )}
+                    <ConfirmarEliminar
+            mensaje="¿Eliminar esta auditoría?"
+            onConfirm={() => onDelete(auditoria.id)}
+            compacto
+          />
         </div>
       </div>
 

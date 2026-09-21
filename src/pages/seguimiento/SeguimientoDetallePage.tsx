@@ -15,6 +15,8 @@ import { useBitacora } from '../../hooks/useBitacora'
 import BitacoraCard from '../../components/bitacora/BitacoraCard'
 import { subirImagen } from '../../lib/storage'
 import { comprimirImagen } from '../../lib/comprimirImagen'
+import BotonVolver from '../../components/ui/BotonVolver'
+import SelectorFoto from '../../components/ui/SelectorFoto'
 
 type Tab = 'pendientes' | 'bitacora' | 'seguridad' | 'auditoria'
 
@@ -41,7 +43,6 @@ export default function SeguimientoDetallePage() {
   const [savingBitacora, setSavingBitacora] = useState(false)
   const [fotoPreview, setFotoPreview] = useState<string | null>(null)
   const [fotoFile, setFotoFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Seguridad
   const [showChecklistForm, setShowChecklistForm] = useState(false)
@@ -51,9 +52,7 @@ export default function SeguimientoDetallePage() {
   const [showAuditoriaForm, setShowAuditoriaForm] = useState(false)
   const { auditorias, loading: loadingA, createAuditoria, deleteAuditoria } = useAuditorias(id!)
 
-  async function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function handleFotoChange(file: File) {
     setFotoFile(file)
     setFotoPreview(URL.createObjectURL(file))
   }
@@ -79,13 +78,12 @@ export default function SeguimientoDetallePage() {
       setBitacoraTexto('')
       setFotoFile(null)
       setFotoPreview(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     } finally {
       setSavingBitacora(false)
     }
   }
 
-  if (loading) return (
+  if (loading || (!obra && !error)) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Cargando...</div>
   )
   if (error || !obra) return (
@@ -94,11 +92,7 @@ export default function SeguimientoDetallePage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-1">
-        <button onClick={() => navigate('/seguimiento')} className="text-gray-400 hover:text-gray-600 text-sm">
-          ← Seguimiento
-        </button>
-      </div>
+      <BotonVolver to="/seguimiento" label="Seguimiento" />
 
       <div className="flex items-start justify-between gap-4 mb-6 mt-3">
         <div className="min-w-0 flex-1">
@@ -192,8 +186,8 @@ export default function SeguimientoDetallePage() {
                   className="rounded-lg w-full object-cover max-h-48"
                 />
                 <button
-                  onClick={() => { setFotoPreview(null); setFotoFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                  className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 shadow text-sm"
+                  onClick={() => { setFotoPreview(null); setFotoFile(null) }}
+                  aria-label="Quitar foto"                  className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 shadow text-sm"
                 >
                   ×
                 </button>
@@ -202,36 +196,7 @@ export default function SeguimientoDetallePage() {
 
             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
               {/* Botón adjuntar foto */}
-              <div className="flex gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFotoChange}
-                  className="hidden"
-                  id="bitacora-foto-camara"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFotoChange}
-                  className="hidden"
-                  id="bitacora-foto-galeria"
-                />
-                <label
-                  htmlFor="bitacora-foto-camara"
-                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  📷 Cámara
-                </label>
-                <label
-                  htmlFor="bitacora-foto-galeria"
-                  className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  🖼 Galería
-                </label>
-              </div>
+              <SelectorFoto onSelect={handleFotoChange} />
               <button
                 disabled={!bitacoraTexto.trim() || savingBitacora}
                 onClick={handleGuardarBitacora}

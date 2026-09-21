@@ -8,7 +8,7 @@ import { useDocumentos } from '../../hooks/useDocumentos'
 import DocumentoItem from '../../components/documentos/DocumentoItem'
 import FileUploader from '../../components/documentos/FileUploader'
 import { useContactos } from '../../hooks/useContactos'
-
+import BotonVolver from '../../components/ui/BotonVolver'
 
 type Tab = 'info' | 'documentos' | 'notas' | 'contactos'
 
@@ -70,6 +70,12 @@ export default function ObraDetallePage() {
 
  
 
+  if (loading || (!obra && !error)) return (
+    <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
+      Cargando...
+    </div>
+  )
+
   if (error || !obra) return (
     <div className="flex items-center justify-center py-20 text-red-500 text-sm">
       No se pudo cargar la obra.
@@ -82,14 +88,7 @@ export default function ObraDetallePage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-1">
-        <button
-          onClick={() => navigate('/proyectos')}
-          className="text-gray-400 hover:text-gray-600 text-sm"
-        >
-          ← Proyectos
-        </button>
-      </div>
+      <BotonVolver to="/proyectos" label="Proyectos" />
 
       <div className="flex items-start justify-between gap-4 mb-6 mt-3">
         <div className="min-w-0 flex-1">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { esModoDemo, idDemo, ahoraIso } from '../lib/demo'
+import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { Checklist } from '../types'
 
 export function useChecklist(obraId: string) {
@@ -12,6 +12,7 @@ export function useChecklist(obraId: string) {
   }, [obraId])
 
   async function fetch() {
+    if (esIdDemo(obraId)) { setChecklists([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('checklists')

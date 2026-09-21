@@ -26,7 +26,10 @@ export async function esModoDemo(): Promise<boolean> {
 
 /** Id temporal para registros creados en modo demo */
 export function idDemo(): string {
-  return `demo-${crypto.randomUUID()}`
+  const aleatorio = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `demo-${aleatorio}`
 }
 
 export function esIdDemo(id: string | undefined | null): boolean {

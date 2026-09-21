@@ -2,21 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { useObras } from '../../hooks/useObras'
 import { usePendientesGlobal } from '../../hooks/usePendientesGlobal'
 import { useRecorridos } from '../../hooks/useRecorridos'
-
-function diasRestantes(fechaFin: string): number {
-  const hoy = new Date()
-  hoy.setHours(0, 0, 0, 0)
-  const fin = new Date(fechaFin)
-  fin.setHours(0, 0, 0, 0)
-  return Math.ceil((fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24))
-}
+import { fechaLocal, diasRestantes } from '../../lib/fechas'
 
 function recorridosEstaSemana(recorridos: { fecha: string }[]): number {
   const hoy = new Date()
   const inicioSemana = new Date(hoy)
   inicioSemana.setDate(hoy.getDate() - hoy.getDay())
   inicioSemana.setHours(0, 0, 0, 0)
-  return recorridos.filter(r => new Date(r.fecha) >= inicioSemana).length
+  return recorridos.filter(r => fechaLocal(r.fecha) >= inicioSemana).length
 }
 
 export default function InicioPage() {

@@ -7,6 +7,8 @@ import { comprimirImagen } from '../../lib/comprimirImagen'
 import { subirImagen } from '../../lib/storage'
 import { useAuth } from '../../context/AuthContext'
 import { esIdDemo } from '../../lib/demo'
+import BotonVolver from '../../components/ui/BotonVolver'
+import SelectorFoto from '../../components/ui/SelectorFoto'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -24,17 +26,11 @@ export default function RecorridoDetallePage() {
   const [obsForm, setObsForm] = useState({ descripcion: '', area_zona: '' })
   const [fotosNuevas, setFotosNuevas] = useState<{ file: File; preview: string }[]>([])
   const [savingObs, setSavingObs] = useState(false)
-  const fileInputCamaraRef = useRef<HTMLInputElement>(null)
-  const fileInputGaleriaRef = useRef<HTMLInputElement>(null)
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false)
   const [generandoPDF, setGenerandoPDF] = useState(false)
 
-  async function handleAgregarFotoNueva(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function handleAgregarFotoNueva(file: File) {
     setFotosNuevas(prev => [...prev, { file, preview: URL.createObjectURL(file) }])
-    // reset input para poder agregar la misma foto dos veces si se desea
-    e.target.value = ''
   }
 
   function handleEliminarFotoNueva(index: number) {
@@ -239,19 +235,13 @@ export default function RecorridoDetallePage() {
   if (!recorrido) return (
     <div className="flex flex-col items-center justify-center py-20 gap-3">
       <p className="text-sm text-gray-500">No se encontró el recorrido.</p>
-      <button onClick={() => navigate('/recorridos')} className="text-sm text-teal-600 hover:text-teal-700">
-        ← Volver a recorridos
-      </button>
+      <BotonVolver to="/recorridos" label="Volver a recorridos" />
     </div>
   )
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-1">
-        <button onClick={() => navigate('/recorridos')} className="text-gray-400 hover:text-gray-600 text-sm">
-          ← Recorridos
-        </button>
-      </div>
+      <BotonVolver to="/recorridos" label="Recorridos" />
 
       <div className="mb-4 mt-3">
         {editandoInfo ? (
@@ -353,7 +343,7 @@ export default function RecorridoDetallePage() {
         >
           {generandoPDF ? 'Generando...' : '↓ Exportar PDF'}
         </button>
-        {user && (
+        {puedeEliminar && (
           <button
             onClick={() => setConfirmandoEliminar(true)}
             className="text-sm px-4 py-2 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
@@ -363,7 +353,7 @@ export default function RecorridoDetallePage() {
         )}
       </div>
 
-      {confirmandoEliminar && user && (
+      {confirmandoEliminar && puedeEliminar && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
           <span className="text-sm text-red-600 flex-1">¿Eliminar este recorrido y todas sus observaciones?</span>
           <button
@@ -441,22 +431,7 @@ export default function RecorridoDetallePage() {
             </div>
           )}
 
-          <div className="flex gap-2 flex-wrap">
-            <input ref={fileInputCamaraRef} type="file" accept="image/*" capture="environment" onChange={handleAgregarFotoNueva} className="hidden" />
-            <input ref={fileInputGaleriaRef} type="file" accept="image/*" onChange={handleAgregarFotoNueva} className="hidden" />
-            <button
-              onClick={() => fileInputCamaraRef.current?.click()}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              📷 Cámara
-            </button>
-            <button
-              onClick={() => fileInputGaleriaRef.current?.click()}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              🖼 Galería
-            </button>
-          </div>
+          <SelectorFoto onSelect={handleAgregarFotoNueva} />
 
           <div className="flex gap-2">
             <button

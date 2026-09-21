@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { Checklist } from '../../types'
+import { fechaLocal } from '../../lib/fechas'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 
 interface Props {
   checklist: Checklist
@@ -36,10 +38,9 @@ const respuestaConfig: Record<string, string> = {
 }
 
 export default function ChecklistResumen({ checklist, onDelete, obraNombre, obraContratista }: Props) {
-  const [confirmando, setConfirmando] = useState(false)
   const [generandoPDF, setGenerandoPDF] = useState(false)
   const estado = estadoConfig[checklist.estado_general]
-  const fecha = new Date(checklist.fecha_inspeccion + 'T12:00:00').toLocaleDateString('es-PE', {
+  const fecha = fechaLocal(checklist.fecha_inspeccion).toLocaleDateString('es-PE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   })
 
@@ -152,29 +153,11 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
           >
             {generandoPDF ? 'Generando...' : '↓ PDF'}
           </button>
-          {confirmando ? (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onDelete(checklist.id)}
-                className="text-xs px-2.5 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-              >
-                Eliminar
-              </button>
-              <button
-                onClick={() => setConfirmando(false)}
-                className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setConfirmando(true)}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
-            >
-              Eliminar
-            </button>
-          )}
+          <ConfirmarEliminar
+            mensaje="¿Eliminar esta inspección?"
+            onConfirm={() => onDelete(checklist.id)}
+            compacto
+          />
         </div>
       </div>
       <div className="divide-y divide-gray-100">

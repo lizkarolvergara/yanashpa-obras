@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { Pendiente } from '../../types'
+import { fechaLocal, diasRestantes } from '../../lib/fechas'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 
 interface Props {
   pendiente: Pendiente
@@ -16,13 +18,12 @@ const prioridadConfig = {
 
 export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate }: Props) {
   const resuelto = pendiente.estado === 'resuelto'
-  const vencido = pendiente.fecha_limite
-    && new Date(pendiente.fecha_limite) < new Date()
+  const vencido = !!pendiente.fecha_limite
+    && diasRestantes(pendiente.fecha_limite) < 0
     && !resuelto
   const prio = prioridadConfig[pendiente.prioridad]
 
   const [editando, setEditando] = useState(false)
-  const [confirmando, setConfirmando] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({
     descripcion:  pendiente.descripcion,
@@ -42,7 +43,6 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
     })
     setSaving(false)
     setEditando(false)
-    setConfirmando(false)
   }
 
   // ── Vista normal ──────────────────────────────────────────────────────────
@@ -54,6 +54,7 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
         {/* Toggle estado */}
         <button
           onClick={() => onToggle(pendiente.id, resuelto ? 'abierto' : 'resuelto')}
+          aria-label={resuelto ? 'Marcar como abierto' : 'Marcar como resuelto'}
           className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-colors ${
             resuelto
               ? 'bg-teal-500 border-teal-500'
@@ -81,7 +82,7 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
             {pendiente.fecha_limite && (
               <span className={`text-xs ${vencido ? 'text-red-500 font-medium' : 'text-gray-400'}`}>
                 {vencido ? 'Vencido · ' : ''}
-                {new Date(pendiente.fecha_limite).toLocaleDateString('es-PE')}
+                {fechaLocal(pendiente.fecha_limite).toLocaleDateString('es-PE')}
               </span>
             )}
           </div>
@@ -155,7 +156,7 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
 
       <div className="flex items-center gap-2">
         <button
-          onClick={() => { setEditando(false); setConfirmando(false) }}
+          onClick={() => setEditando(false)}
           className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Cancelar
@@ -170,30 +171,11 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
       </div>
 
       <div className="border-t border-gray-100 pt-3">
-        {confirmando ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-500 flex-1">¿Eliminar este pendiente?</span>
-            <button
-              onClick={() => onDelete(pendiente.id)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-          >
-            Eliminar pendiente
-          </button>
-        )}
+        <ConfirmarEliminar
+          mensaje="¿Eliminar este pendiente?"
+          etiqueta="Eliminar pendiente"
+          onConfirm={() => onDelete(pendiente.id)}
+        />
       </div>
     </div>
   )

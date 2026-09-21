@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { uploadArchivo, deleteArchivo } from '../lib/storage'
-import { esModoDemo, idDemo, ahoraIso } from '../lib/demo'
+import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { Documento } from '../types'
 
 type MetaDocumento = { nombre: string; categoria: Documento['categoria']; descripcion: string; version: string }
@@ -15,6 +15,7 @@ export function useDocumentos(obraId: string) {
   }, [obraId])
 
   async function fetch() {
+    if (esIdDemo(obraId)) { setDocumentos([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('documentos')

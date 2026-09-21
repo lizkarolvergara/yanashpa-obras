@@ -1,6 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import type { ObservacionRecorrido } from '../../types'
 import { subirImagen } from '../../lib/storage'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+import SelectorFoto from '../ui/SelectorFoto'
 
 interface Props {
   observacion: ObservacionRecorrido
@@ -11,10 +13,8 @@ interface Props {
 
 export default function ObservacionItem({ observacion, numero, onDelete, onUpdate }: Props) {
   const [editando, setEditando] = useState(false)
-  const [confirmando, setConfirmando] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingFoto, setUploadingFoto] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Combinar foto_url legacy + fotos_url array para mostrar todas
   const todasLasFotos: string[] = [
@@ -32,9 +32,7 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
     ...(observacion.fotos_url ?? []),
   ])
 
-  async function handleAgregarFoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function handleAgregarFoto(file: File) {
     setUploadingFoto(true)
     try {
       const ext = file.name.split('.').pop()
@@ -43,7 +41,6 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
       if (url) setFotosEdit(prev => [...prev, url])
     } finally {
       setUploadingFoto(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -64,7 +61,6 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
     })
     setSaving(false)
     setEditando(false)
-    setConfirmando(false)
   }
 
   // ── Vista normal ──────────────────────────────────────────────────────────
@@ -158,6 +154,7 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
                 />
                 <button
                   onClick={() => handleEliminarFoto(url)}
+                  aria-label="Quitar foto"
                   className="absolute top-2 right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center text-gray-500 hover:text-red-500 shadow text-sm"
                 >
                   ×
@@ -169,26 +166,14 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
       )}
 
       {/* Agregar fotos */}
-      <div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleAgregarFoto}
-          className="hidden"
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadingFoto}
-          className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-        >
-          {uploadingFoto ? 'Subiendo...' : '+ Agregar foto'}
-        </button>
+      <div className="flex items-center gap-3">
+        <SelectorFoto onSelect={handleAgregarFoto} disabled={uploadingFoto} />
+        {uploadingFoto && <span className="text-xs text-gray-400">Subiendo...</span>}
       </div>
 
       <div className="flex gap-2">
         <button
-          onClick={() => { setEditando(false); setConfirmando(false) }}
+          onClick={() => setEditando(false)}
           className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Cancelar
@@ -203,30 +188,11 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
       </div>
 
       <div className="border-t border-gray-100 pt-3">
-        {confirmando ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-500 flex-1">¿Eliminar esta observación?</span>
-            <button
-              onClick={() => onDelete(observacion.id)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-          >
-            Eliminar observación
-          </button>
-        )}
+        <ConfirmarEliminar
+          mensaje="¿Eliminar esta observación?"
+          etiqueta="Eliminar observación"
+          onConfirm={() => onDelete(observacion.id)}
+        />
       </div>
     </div>
   )

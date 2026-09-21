@@ -4,6 +4,7 @@ import { useObras } from '../../hooks/useObras'
 import { useObra } from '../../hooks/useObra'
 import { useAuth } from '../../context/AuthContext'
 import { esIdDemo } from '../../lib/demo'
+import BotonVolver from '../../components/ui/BotonVolver'
 
 const camposVacios = {
   nombre_corto: '',
@@ -163,13 +164,11 @@ export default function ObraFormPage() {
 
   return (
     <div className="max-w-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate(esEdicion ? `/proyectos/${id}` : '/proyectos')}
-          className="text-gray-400 hover:text-gray-600 text-sm"
-        >
-          ← Volver
-        </button>
+      <div className="mb-6">
+        <BotonVolver
+          to={esEdicion ? `/proyectos/${id}` : '/proyectos'}
+          label={esEdicion ? 'Proyecto' : 'Proyectos'}
+        />
         <h1 className="text-xl font-medium text-gray-900">
           {esEdicion ? 'Editar proyecto' : 'Nuevo proyecto'}
         </h1>
@@ -225,7 +224,7 @@ export default function ObraFormPage() {
               value={form.ruc}
               onChange={handleChange}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-              placeholder="20xxxxxxxxx"
+              placeholder="Ingrese número de RUC"
               maxLength={11}
             />
           </div>

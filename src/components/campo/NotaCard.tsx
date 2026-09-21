@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { NotaCampo } from '../../types'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 
 interface Props {
   nota: NotaCampo
@@ -12,7 +13,6 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
   const [editando, setEditando] = useState(false)
   const [texto, setTexto] = useState(nota.contenido)
   const [saving, setSaving] = useState(false)
-  const [confirmando, setConfirmando] = useState(false)
 
   async function handleGuardar() {
     if (!texto.trim()) return
@@ -20,7 +20,6 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
     await onUpdate(nota.id, texto.trim())
     setSaving(false)
     setEditando(false)
-    setConfirmando(false)
   }
 
   // ── Vista normal ──────────────────────────────────────────────────────────
@@ -84,7 +83,7 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
 
       <div className="flex items-center gap-2">
         <button
-          onClick={() => { setEditando(false); setConfirmando(false) }}
+          onClick={() => setEditando(false)}
           className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Cancelar
@@ -99,30 +98,11 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
       </div>
 
       <div className="border-t border-gray-100 pt-3">
-        {confirmando ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-500 flex-1">¿Eliminar esta nota?</span>
-            <button
-              onClick={() => onDelete(nota.id)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-          >
-            Eliminar nota
-          </button>
-        )}
+        <ConfirmarEliminar
+          mensaje="¿Eliminar esta nota?"
+          etiqueta="Eliminar nota"
+          onConfirm={() => onDelete(nota.id)}
+        />
       </div>
     </div>
   )

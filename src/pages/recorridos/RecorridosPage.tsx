@@ -3,14 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useRecorridos } from '../../hooks/useRecorridos'
 import { useAuth } from '../../context/AuthContext'
 import TarjetasBloqueadas from '../../components/auth/TarjetasBloqueadas'
-
-/** Fecha local de hoy en formato YYYY-MM-DD (evita el desfase UTC) */
-function fechaHoy() {
-  const d = new Date()
-  const mes = String(d.getMonth() + 1).padStart(2, '0')
-  const dia = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${mes}-${dia}`
-}
+import { fechaHoy, fechaLocal } from '../../lib/fechas'
 
 const formVacio = { titulo: '', participantes: '', descripcion: '' }
 
@@ -126,7 +119,7 @@ export default function RecorridosPage() {
                     {r.titulo ?? 'Recorrido sin título'}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-PE', {
+                    {fechaLocal(r.fecha).toLocaleDateString('es-PE', {
                       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                     })}
                   </p>

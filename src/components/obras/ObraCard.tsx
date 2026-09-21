@@ -1,5 +1,6 @@
 import type { Obra } from '../../types'
 import EstadoBadge from './EstadoBadge'
+import { fechaLocal, diasRestantes as calcularDias } from '../../lib/fechas'
 
 interface Props {
   obra: Obra
@@ -19,9 +20,9 @@ function formatTipo(tipo: string) {
 export default function ObraCard({ obra, onClick }: Props) {
   const diasRestantes = obra.estado === 'cerrada'
     ? null
-    : Math.ceil((new Date(obra.fecha_fin).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-
-  const displayNombre = obra.nombre_corto ?? obra.nombre
+    : calcularDias(obra.fecha_fin)
+ 
+    const displayNombre = obra.nombre_corto ?? obra.nombre
 
   return (
     <div
@@ -39,13 +40,13 @@ export default function ObraCard({ obra, onClick }: Props) {
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha inicio</p>
           <p className="text-gray-700">
-            {new Date(obra.fecha_inicio + 'T12:00:00').toLocaleDateString('es-PE')}
+            {fechaLocal(obra.fecha_inicio).toLocaleDateString('es-PE')}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Fecha fin</p>
           <p className="text-gray-700">
-            {new Date(obra.fecha_fin + 'T12:00:00').toLocaleDateString('es-PE')}
+            {fechaLocal(obra.fecha_fin).toLocaleDateString('es-PE')}          
           </p>
         </div>
         <div>
@@ -61,6 +62,8 @@ export default function ObraCard({ obra, onClick }: Props) {
               ? '—'
               : diasRestantes < 0
               ? `Vencido (${Math.abs(diasRestantes)}d)`
+              : diasRestantes === 0
+              ? 'Vence hoy'
               : `${diasRestantes}d`}
           </p>
         </div>

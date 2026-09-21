@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import type { BitacoraEntry } from '../../types'
 import { comprimirImagen } from '../../lib/comprimirImagen'
 import { subirImagen } from '../../lib/storage'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+import SelectorFoto from '../ui/SelectorFoto'
 
 interface Props {
   entrada: BitacoraEntry
@@ -14,13 +16,10 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
   const [editando, setEditando] = useState(false)
   const [texto, setTexto] = useState(entrada.contenido)
   const [saving, setSaving] = useState(false)
-  const [confirmando, setConfirmando] = useState(false)
 
   // Foto en edición: la actual (o null si se quitó) y una nueva pendiente de subir
   const [fotoActual, setFotoActual] = useState<string | null>(entrada.foto_url)
   const [fotoNueva, setFotoNueva] = useState<{ file: File; preview: string } | null>(null)
-  const inputCamaraRef = useRef<HTMLInputElement>(null)
-  const inputGaleriaRef = useRef<HTMLInputElement>(null)
 
   const fotoVisible = fotoNueva?.preview ?? fotoActual
 
@@ -33,15 +32,11 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
 
   function cerrarEdicion() {
     setEditando(false)
-    setConfirmando(false)
     setFotoNueva(null)
   }
 
-  function handleSeleccionarFoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function handleSeleccionarFoto(file: File) {
     setFotoNueva({ file, preview: URL.createObjectURL(file) })
-    e.target.value = ''
   }
 
   function handleQuitarFoto() {
@@ -136,35 +131,7 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
           </button>
         </div>
       ) : (
-        <div className="flex gap-2">
-          <input
-            ref={inputCamaraRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleSeleccionarFoto}
-            className="hidden"
-          />
-          <input
-            ref={inputGaleriaRef}
-            type="file"
-            accept="image/*"
-            onChange={handleSeleccionarFoto}
-            className="hidden"
-          />
-          <button
-            onClick={() => inputCamaraRef.current?.click()}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            📷 Cámara
-          </button>
-          <button
-            onClick={() => inputGaleriaRef.current?.click()}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
-            🖼 Galería
-          </button>
-        </div>
+        <SelectorFoto onSelect={handleSeleccionarFoto} />
       )}
 
       <div className="flex gap-2">
@@ -185,30 +152,11 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
       </div>
 
       <div className="border-t border-gray-100 pt-3">
-        {confirmando ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-500 flex-1">¿Eliminar esta entrada?</span>
-            <button
-              onClick={() => onDelete(entrada.id)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-          >
-            Eliminar entrada
-          </button>
-        )}
+        <ConfirmarEliminar
+          mensaje="¿Eliminar esta entrada?"
+          etiqueta="Eliminar entrada"
+          onConfirm={() => onDelete(entrada.id)}
+        />
       </div>
     </div>
   )

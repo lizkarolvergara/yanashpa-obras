@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Documento } from '../../types'
+import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 
 interface Props {
   documento: Documento
@@ -55,13 +56,12 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
   const fecha = new Date(documento.created_at).toLocaleDateString('es-PE')
   const [descargando, setDescargando] = useState(false)
   const [editando, setEditando] = useState(false)
-  const [confirmando, setConfirmando] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({
-    nombre:     documento.nombre,
-    categoria:  documento.categoria,
+    nombre:      documento.nombre,
+    categoria:   documento.categoria,
     descripcion: documento.descripcion ?? '',
-    version:    documento.version ?? '',
+    version:     documento.version ?? '',
   })
 
   function handleDescargar() {
@@ -80,7 +80,6 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
     })
     setSaving(false)
     setEditando(false)
-    setConfirmando(false)
   }
 
   // ── Vista normal ──────────────────────────────────────────────────────────
@@ -89,7 +88,6 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
       <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3">
         <span className="text-2xl flex-shrink-0">{getIcono(documento.archivo_url)}</span>
 
-        {/* nombre + meta — ocupa todo el espacio disponible */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-800 truncate">{documento.nombre}</p>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -106,7 +104,6 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
           )}
         </div>
 
-        {/* botones — en móvil se apilan en columna para no tapar el nombre */}
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => window.open(documento.archivo_url, '_blank')}
@@ -183,10 +180,9 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
         />
       </div>
 
-      {/* Botones acción */}
       <div className="flex items-center gap-2 pt-1">
         <button
-          onClick={() => { setEditando(false); setConfirmando(false) }}
+          onClick={() => setEditando(false)}
           className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Cancelar
@@ -200,32 +196,12 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
         </button>
       </div>
 
-      {/* Zona de eliminar — separada visualmente */}
       <div className="border-t border-gray-100 pt-3">
-        {confirmando ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-500 flex-1">¿Eliminar este documento?</span>
-            <button
-              onClick={() => onDelete(documento.id, documento.archivo_url)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              onClick={() => setConfirmando(false)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setConfirmando(true)}
-            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-          >
-            Eliminar documento
-          </button>
-        )}
+        <ConfirmarEliminar
+          mensaje="¿Eliminar este documento?"
+          etiqueta="Eliminar documento"
+          onConfirm={() => onDelete(documento.id, documento.archivo_url)}
+        />
       </div>
     </div>
   )

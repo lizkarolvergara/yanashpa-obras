@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { esModoDemo, idDemo, ahoraIso } from '../lib/demo'
+import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { Contacto } from '../types'
 
 export function useContactos(obraId: string) {
@@ -12,6 +12,7 @@ export function useContactos(obraId: string) {
   }, [obraId])
 
   async function fetch() {
+    if (esIdDemo(obraId)) { setContactos([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('contactos')

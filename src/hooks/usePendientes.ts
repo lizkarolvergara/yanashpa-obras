@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { esModoDemo, idDemo, ahoraIso } from '../lib/demo'
+import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { Pendiente } from '../types'
 
 export function usePendientes(obraId: string) {
@@ -12,6 +12,7 @@ export function usePendientes(obraId: string) {
   }, [obraId])
 
   async function fetchPendientes() {
+    if (esIdDemo(obraId)) { setPendientes([]); setLoading(false); return }
     setLoading(true)
     const { data } = await supabase
       .from('pendientes')
