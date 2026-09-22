@@ -290,8 +290,13 @@ export default function SeguimientoDetallePage() {
             <p className="text-sm text-gray-400 text-center py-8">No hay auditorías registradas.</p>
           ) : (
             auditorias.map(a => (
-              <AuditoriaResumen key={a.id} auditoria={a} onDelete={deleteAuditoria} />
-            ))
+              <AuditoriaResumen
+                key={a.id}
+                auditoria={a}
+                onDelete={deleteAuditoria}
+                obraNombre={obra.nombre_corto ?? obra.nombre}
+                obraContratista={obra.contratista}
+              />            ))
           )}
         </div>
       )}

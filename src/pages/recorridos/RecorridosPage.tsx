@@ -95,7 +95,7 @@ export default function RecorridosPage() {
               disabled={saving}
               className="flex-1 bg-teal-600 text-white text-sm py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
             >
-              {saving ? 'Creando...' : 'Crear recorrido'}
+              {saving ? 'Creando...' : 'Crear'}
             </button>
           </div>
         </div>

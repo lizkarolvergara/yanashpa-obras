@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { Checklist } from '../../types'
 import { fechaLocal } from '../../lib/fechas'
+import { generarPdfEvaluacion } from '../../lib/pdfEvaluacion'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+import BotonPDF from '../ui/BotonPDF'
 
 interface Props {
   checklist: Checklist
@@ -32,102 +34,53 @@ const estadoConfig = {
 }
 
 const respuestaConfig: Record<string, string> = {
-  ok:       'text-teal-600',
-  observado:'text-amber-600',
-  na:       'text-gray-400',
+  ok:        'text-teal-600',
+  observado: 'text-amber-600',
+  na:        'text-gray-400',
+}
+
+const etiquetaRespuesta: Record<string, string> = {
+  ok: 'OK', observado: 'Observado', na: 'N/A',
 }
 
 export default function ChecklistResumen({ checklist, onDelete, obraNombre, obraContratista }: Props) {
+  const [expandido, setExpandido] = useState(false)
   const [generandoPDF, setGenerandoPDF] = useState(false)
   const estado = estadoConfig[checklist.estado_general]
   const fecha = fechaLocal(checklist.fecha_inspeccion).toLocaleDateString('es-PE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   })
 
+  const valores = Object.values(checklist.respuestas)
+  const conformes = valores.filter(v => v === 'ok').length
+  const observados = valores.filter(v => v === 'observado').length
+
   async function handleGenerarPDF() {
     setGenerandoPDF(true)
     try {
-      const jsPDF = (await import('jspdf')).default
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageW = 210
-      const margin = 15
-      const contentW = pageW - margin * 2
-      let y = 20
+      const meta: string[] = []
+      if (obraNombre) meta.push(`Obra: ${obraNombre}`)
+      if (obraContratista) meta.push(`Contratista: ${obraContratista}`)
+      meta.push(`Estado general: ${estado.label}`)
 
-      // Título
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0)
-      doc.text('Inspección de Seguridad', margin, y)
-      y += 8
-
-      // Metadata
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(100)
-      doc.text(`Fecha: ${fecha}`, margin, y)
-      y += 6
-      if (obraNombre) {
-        doc.text(`Obra: ${obraNombre}`, margin, y)
-        y += 6
-      }
-      if (obraContratista) {
-        doc.text(`Contratista: ${obraContratista}`, margin, y)
-        y += 6
-      }
-
-      const estadoLabel = checklist.estado_general === 'ok' ? 'Conforme'
-        : checklist.estado_general === 'observado' ? 'Observado' : 'Crítico'
-      doc.text(`Estado general: ${estadoLabel}`, margin, y)
-      y += 6
-
-      if (checklist.observaciones) {
-        const lines = doc.splitTextToSize(`Observaciones: ${checklist.observaciones}`, contentW)
-        doc.text(lines, margin, y)
-        y += lines.length * 5 + 2
-      }
-
-      y += 4
-      doc.setDrawColor(200)
-      doc.line(margin, y, pageW - margin, y)
-      y += 8
-
-      // Ítems
-      doc.setTextColor(0)
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Ítems evaluados', margin, y)
-      y += 8
-
-      for (const [key, label] of Object.entries(ITEMS)) {
-        if (y > 270) { doc.addPage(); y = 20 }
-        const val = checklist.respuestas[key] ?? 'na'
-        const valLabel = val === 'ok' ? 'OK' : val === 'observado' ? 'Observado' : 'N/A'
-
-        doc.setFontSize(10)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(60)
-        doc.text(label, margin, y)
-
-        doc.setFont('helvetica', 'bold')
-        if (val === 'ok')       doc.setTextColor(22, 163, 74)
-        else if (val === 'observado') doc.setTextColor(180, 120, 0)
-        else                    doc.setTextColor(120, 120, 120)
-        doc.text(valLabel, pageW - margin, y, { align: 'right' })
-
-        doc.setDrawColor(230)
-        doc.line(margin, y + 2, pageW - margin, y + 2)
-        y += 8
-      }
-
-      const fileName = `checklist_seguridad_${checklist.fecha_inspeccion}.pdf`
-      const blob = doc.output('blob')
-      const blobUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = fileName
-      a.click()
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
+      await generarPdfEvaluacion({
+        titulo: 'Inspección de Seguridad',
+        fecha,
+        meta,
+        observaciones: checklist.observaciones,
+        nombreArchivo: `inspeccion_seguridad_${checklist.fecha_inspeccion}.pdf`,
+        secciones: [{
+          titulo: 'Ítems evaluados',
+          items: Object.entries(ITEMS).map(([key, label]) => {
+            const val = checklist.respuestas[key] ?? 'na'
+            return {
+              label,
+              valor: etiquetaRespuesta[val],
+              tono: val === 'ok' ? 'ok' as const : val === 'observado' ? 'alerta' as const : 'neutro' as const,
+            }
+          }),
+        }],
+      })
     } finally {
       setGenerandoPDF(false)
     }
@@ -135,27 +88,27 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <div>
+      <div className="px-5 py-4 flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 capitalize">{fecha}</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            {conformes} conformes · {observados} observados
+          </p>
           {checklist.observaciones && (
             <p className="text-xs text-gray-400 mt-0.5">{checklist.observaciones}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
             {estado.label}
           </span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-            </svg>
           <button
-            onClick={handleGenerarPDF}
-            disabled={generandoPDF}
-            className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-teal-100 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
+            onClick={() => setExpandido(!expandido)}
+            className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            {generandoPDF ? 'Generando...' : 'PDF'}
+            {expandido ? 'Ocultar' : 'Ver detalle'}
           </button>
+          <BotonPDF onClick={handleGenerarPDF} generando={generandoPDF} />
           <ConfirmarEliminar
             mensaje="¿Eliminar esta inspección?"
             onConfirm={() => onDelete(checklist.id)}
@@ -163,16 +116,22 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
           />
         </div>
       </div>
-      <div className="divide-y divide-gray-100">
-        {Object.entries(checklist.respuestas).map(([key, val]) => (
-          <div key={key} className="flex items-center justify-between px-5 py-2.5">
-            <p className="text-sm text-gray-600">{ITEMS[key] ?? key}</p>
-            <span className={`text-xs font-medium ${respuestaConfig[val] ?? ''}`}>
-              {val === 'ok' ? 'OK' : val === 'observado' ? 'Observado' : 'N/A'}
-            </span>
-          </div>
-        ))}
-      </div>
+
+      {expandido && (
+        <div className="border-t border-gray-100 divide-y divide-gray-100">
+          {Object.entries(ITEMS).map(([key, label]) => {
+            const val = checklist.respuestas[key] ?? 'na'
+            return (
+              <div key={key} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                <p className="text-sm text-gray-600">{label}</p>
+                <span className={`text-xs font-medium flex-shrink-0 ${respuestaConfig[val] ?? ''}`}>
+                  {etiquetaRespuesta[val]}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

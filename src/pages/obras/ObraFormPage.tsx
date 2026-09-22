@@ -353,7 +353,7 @@ export default function ObraFormPage() {
             disabled={saving}
             className="flex-1 bg-teal-600 text-white text-sm py-2.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
           >
-            {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar proyecto'}
+            {saving ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Guardar'}
           </button>
         </div>
 

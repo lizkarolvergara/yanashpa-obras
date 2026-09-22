@@ -10,6 +10,7 @@ import { esIdDemo } from '../../lib/demo'
 import BotonVolver from '../../components/ui/BotonVolver'
 import SelectorFoto from '../../components/ui/SelectorFoto'
 import ConfirmarEliminar from '../../components/ui/ConfirmarEliminar'
+import BotonPDF from '../../components/ui/BotonPDF'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -345,16 +346,12 @@ export default function RecorridoDetallePage() {
 
       {/* Acciones */}
       <div className="flex gap-2 mb-6 mt-4">
-        <button
+        <BotonPDF
           onClick={handleGenerarPDF}
-          disabled={generandoPDF || observaciones.length === 0}
-          className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-          </svg>
-          {generandoPDF ? 'Generando...' : 'PDF'}
-        </button>
+          generando={generandoPDF}
+          disabled={observaciones.length === 0}
+          tamano="md"
+        />
       </div>
 
       {/* Lista observaciones */}
