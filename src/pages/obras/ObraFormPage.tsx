@@ -263,7 +263,7 @@ export default function ObraFormPage() {
         {/* Fechas + plazo */}
         <div>
           <p className="text-sm text-gray-600 mb-2">Plazo contractual *</p>
-          <div className="ggrid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Fecha de inicio</label>
               <input
@@ -275,7 +275,18 @@ export default function ObraFormPage() {
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
               />
             </div>
-            <div>
+            <div className="sm:order-3">
+              <label className="block text-xs text-gray-400 mb-1">Fecha de fin</label>
+              <input
+                type="date"
+                name="fecha_fin"
+                value={form.fecha_fin}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
+              />
+            </div>
+            <div className="col-span-2 sm:col-span-1 sm:order-2">
               <label className="block text-xs text-gray-400 mb-1">Plazo (días cal.)</label>
               <input
                 type="number"
@@ -284,17 +295,6 @@ export default function ObraFormPage() {
                 onChange={handleChange}
                 min="1"
                 placeholder="Ej: 90"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Fecha de fin</label>
-              <input
-                type="date"
-                name="fecha_fin"
-                value={form.fecha_fin}
-                onChange={handleChange}
-                required
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-400"
               />
             </div>
