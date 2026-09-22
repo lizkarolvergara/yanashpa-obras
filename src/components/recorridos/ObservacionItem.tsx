@@ -190,7 +190,6 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
       <div className="border-t border-gray-100 pt-3">
         <ConfirmarEliminar
           mensaje="¿Eliminar esta observación?"
-          etiqueta="Eliminar observación"
           onConfirm={() => onDelete(observacion.id)}
         />
       </div>

@@ -146,12 +146,15 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
             {estado.label}
           </span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
           <button
             onClick={handleGenerarPDF}
             disabled={generandoPDF}
-            className="text-xs px-2.5 py-1.5 rounded-lg border border-teal-100 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
+            className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-teal-100 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
           >
-            {generandoPDF ? 'Generando...' : '↓ PDF'}
+            {generandoPDF ? 'Generando...' : 'PDF'}
           </button>
           <ConfirmarEliminar
             mensaje="¿Eliminar esta inspección?"

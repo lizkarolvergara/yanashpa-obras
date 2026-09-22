@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import BotonVolver from '../../components/ui/BotonVolver'
 
 export default function LoginPage() {
   const { user, loading, signIn } = useAuth()
@@ -85,9 +86,9 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <Link to="/" className="block text-center text-sm text-gray-500 hover:text-gray-700 mt-4">
-          ← Volver al demo
-        </Link>
+        <div className="flex justify-center mt-4">
+          <BotonVolver to="/" label="Volver" />
+        </div>
       </div>
     </div>
   )

@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import { esIdDemo } from '../../lib/demo'
 import BotonVolver from '../../components/ui/BotonVolver'
 import SelectorFoto from '../../components/ui/SelectorFoto'
+import ConfirmarEliminar from '../../components/ui/ConfirmarEliminar'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -26,7 +27,6 @@ export default function RecorridoDetallePage() {
   const [obsForm, setObsForm] = useState({ descripcion: '', area_zona: '' })
   const [fotosNuevas, setFotosNuevas] = useState<{ file: File; preview: string }[]>([])
   const [savingObs, setSavingObs] = useState(false)
-  const [confirmandoEliminar, setConfirmandoEliminar] = useState(false)
   const [generandoPDF, setGenerandoPDF] = useState(false)
 
   function handleAgregarFotoNueva(file: File) {
@@ -298,6 +298,15 @@ export default function RecorridoDetallePage() {
                 {savingInfo ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
+
+            {puedeEliminar && (
+              <div className="border-t border-gray-100 pt-3">
+                <ConfirmarEliminar
+                  mensaje="¿Eliminar este recorrido y sus observaciones?"
+                  onConfirm={async () => { await deleteRecorrido(id!); navigate('/recorridos') }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-start justify-between gap-4">
@@ -339,37 +348,14 @@ export default function RecorridoDetallePage() {
         <button
           onClick={handleGenerarPDF}
           disabled={generandoPDF || observaciones.length === 0}
-          className="text-sm px-4 py-2 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-40 transition-colors"
         >
-          {generandoPDF ? 'Generando...' : '↓ Exportar PDF'}
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          {generandoPDF ? 'Generando...' : 'PDF'}
         </button>
-        {puedeEliminar && (
-          <button
-            onClick={() => setConfirmandoEliminar(true)}
-            className="text-sm px-4 py-2 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
-          >
-            Eliminar recorrido
-          </button>
-        )}
       </div>
-
-      {confirmandoEliminar && puedeEliminar && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-          <span className="text-sm text-red-600 flex-1">¿Eliminar este recorrido y todas sus observaciones?</span>
-          <button
-            onClick={async () => { await deleteRecorrido(id!); navigate('/recorridos') }}
-            className="text-xs px-3 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            Sí, eliminar
-          </button>
-          <button
-            onClick={() => setConfirmandoEliminar(false)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-          >
-            No
-          </button>
-        </div>
-      )}
 
       {/* Lista observaciones */}
       <div className="space-y-3 mb-4">

@@ -100,7 +100,6 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
       <div className="border-t border-gray-100 pt-3">
         <ConfirmarEliminar
           mensaje="¿Eliminar esta nota?"
-          etiqueta="Eliminar nota"
           onConfirm={() => onDelete(nota.id)}
         />
       </div>

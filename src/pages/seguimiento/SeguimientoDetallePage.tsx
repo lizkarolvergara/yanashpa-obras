@@ -234,7 +234,7 @@ export default function SeguimientoDetallePage() {
                 onClick={() => setShowChecklistForm(true)}
                 className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
-                + Nueva inspección
+                + Nuevo
               </button>
             )}
           </div>
@@ -273,7 +273,7 @@ export default function SeguimientoDetallePage() {
                 onClick={() => setShowAuditoriaForm(true)}
                 className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
-                + Nueva auditoría
+                + Nuevo
               </button>
             )}
           </div>

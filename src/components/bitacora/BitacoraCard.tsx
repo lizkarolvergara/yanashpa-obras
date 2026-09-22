@@ -154,7 +154,6 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
       <div className="border-t border-gray-100 pt-3">
         <ConfirmarEliminar
           mensaje="¿Eliminar esta entrada?"
-          etiqueta="Eliminar entrada"
           onConfirm={() => onDelete(entrada.id)}
         />
       </div>

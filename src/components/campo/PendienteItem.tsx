@@ -173,7 +173,6 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
       <div className="border-t border-gray-100 pt-3">
         <ConfirmarEliminar
           mensaje="¿Eliminar este pendiente?"
-          etiqueta="Eliminar pendiente"
           onConfirm={() => onDelete(pendiente.id)}
         />
       </div>

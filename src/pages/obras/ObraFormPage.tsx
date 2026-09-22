@@ -412,8 +412,7 @@ export default function ObraFormPage() {
                   disabled={!confirmacionValida || eliminando}
                   className="flex-1 bg-red-500 text-white text-sm py-2.5 rounded-lg hover:bg-red-600 disabled:opacity-40 transition-colors"
                 >
-                  {eliminando ? 'Eliminando...' : 'Eliminar definitivamente'}
-                </button>
+                  {eliminando ? 'Eliminando...' : 'Sí, eliminar proyecto'}                </button>
               </div>
             </div>
           )}

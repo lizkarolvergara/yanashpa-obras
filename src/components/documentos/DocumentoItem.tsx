@@ -199,7 +199,6 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
       <div className="border-t border-gray-100 pt-3">
         <ConfirmarEliminar
           mensaje="¿Eliminar este documento?"
-          etiqueta="Eliminar documento"
           onConfirm={() => onDelete(documento.id, documento.archivo_url)}
         />
       </div>

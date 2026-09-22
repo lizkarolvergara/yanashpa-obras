@@ -48,7 +48,7 @@ export default function RecorridosPage() {
             onClick={handleNuevo}
             className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
           >
-            + Nuevo recorrido
+            + Nuevo
           </button>
         )}
       </div>
@@ -95,7 +95,7 @@ export default function RecorridosPage() {
               disabled={saving}
               className="flex-1 bg-teal-600 text-white text-sm py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-colors"
             >
-              {saving ? 'Creando...' : 'Crear y agregar observaciones'}
+              {saving ? 'Creando...' : 'Crear recorrido'}
             </button>
           </div>
         </div>

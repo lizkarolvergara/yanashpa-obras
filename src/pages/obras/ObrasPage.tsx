@@ -27,7 +27,7 @@ export default function ObrasPage() {
   function handleNuevo() {
     navigate('/proyectos/nuevo')
   }
-  
+
   if (loading || authLoading) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
       Cargando proyectos...
@@ -48,7 +48,7 @@ export default function ObrasPage() {
           onClick={handleNuevo}
           className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
         >
-          + Nuevo proyecto
+          + Nuevo
         </button>
       </div>
 
