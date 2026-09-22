@@ -4,6 +4,7 @@ import { comprimirImagen } from '../../lib/comprimirImagen'
 import { subirImagen } from '../../lib/storage'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 import SelectorFoto from '../ui/SelectorFoto'
+import ImagenPrivada from '../ui/ImagenPrivada'
 
 interface Props {
   entrada: BitacoraEntry
@@ -88,11 +89,11 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
           {entrada.contenido}
         </p>
         {entrada.foto_url && (
-          <img
+          <ImagenPrivada
             src={entrada.foto_url}
             alt="Foto de bitácora"
-            className="mt-3 rounded-lg w-full object-cover max-h-64 cursor-pointer"
-            onClick={() => window.open(entrada.foto_url!, '_blank')}
+            className="mt-3 rounded-lg w-full object-cover max-h-64"
+            ampliable
           />
         )}
       </div>

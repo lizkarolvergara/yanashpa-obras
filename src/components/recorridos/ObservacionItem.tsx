@@ -3,6 +3,7 @@ import type { ObservacionRecorrido } from '../../types'
 import { subirImagen } from '../../lib/storage'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 import SelectorFoto from '../ui/SelectorFoto'
+import ImagenPrivada from '../ui/ImagenPrivada'
 
 interface Props {
   observacion: ObservacionRecorrido
@@ -101,12 +102,12 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
         {todasLasFotos.length > 0 && (
           <div className={`mt-3 ${todasLasFotos.length > 1 ? 'grid grid-cols-2 gap-2' : ''}`}>
             {todasLasFotos.map((url, i) => (
-              <img
+              <ImagenPrivada
                 key={i}
                 src={url}
                 alt={`Foto ${i + 1}`}
-                className="rounded-lg w-full object-cover max-h-48 cursor-pointer"
-                onClick={() => window.open(url, '_blank')}
+                className="rounded-lg w-full object-cover max-h-48"
+                ampliable
               />
             ))}
           </div>
@@ -147,7 +148,7 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
           <div className="space-y-2">
             {fotosEdit.map((url, i) => (
               <div key={i} className="relative">
-                <img
+                <ImagenPrivada
                   src={url}
                   alt={`Foto ${i + 1}`}
                   className="rounded-lg w-full object-cover max-h-40"

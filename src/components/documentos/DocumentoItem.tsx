@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Documento } from '../../types'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+import { urlVisible } from '../../lib/archivos'
 
 interface Props {
   documento: Documento
@@ -25,30 +26,16 @@ function getIcono(url: string) {
   return '📎'
 }
 
-/** Supabase fuerza la descarga si la URL lleva ?download=nombre */
-function urlDescarga(url: string, nombre: string) {
+/** Agrega la extensión al nombre si le falta */
+function nombreConExtension(url: string, nombre: string) {
   const esLocal = url.startsWith('blob:')
   const limpia = url.split('#')[0]
   const ext = (esLocal
     ? url.split('#archivo.')[1]
     : limpia.split('?')[0].split('.').pop()) ?? ''
-  const archivo = ext && !nombre.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
+  return ext && !nombre.toLowerCase().endsWith(`.${ext.toLowerCase()}`)
     ? `${nombre}.${ext}`
     : nombre
-
-  if (esLocal) return { href: limpia, archivo }
-  const sep = limpia.includes('?') ? '&' : '?'
-  return { href: `${limpia}${sep}download=${encodeURIComponent(archivo)}`, archivo }
-}
-
-function descargarArchivo(url: string, nombre: string) {
-  const { href, archivo } = urlDescarga(url, nombre)
-  const link = document.createElement('a')
-  link.href = href
-  link.download = archivo
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
 }
 
 export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) {
@@ -64,10 +51,27 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
     version:     documento.version ?? '',
   })
 
-  function handleDescargar() {
+  async function handleVer() {
+    // Se abre la pestaña antes del await para que Safari no la bloquee
+    const ventana = window.open('', '_blank')
+    const url = await urlVisible(documento.archivo_url, { segundos: 300 })
+    if (ventana) ventana.location.href = url
+  }
+
+  async function handleDescargar() {
     setDescargando(true)
-    descargarArchivo(documento.archivo_url, documento.nombre)
-    setTimeout(() => setDescargando(false), 1500)
+    try {
+      const archivo = nombreConExtension(documento.archivo_url, documento.nombre)
+      const url = await urlVisible(documento.archivo_url, { segundos: 300, descargar: archivo })
+      const enlace = document.createElement('a')
+      enlace.href = url.startsWith('blob:') ? url.split('#')[0] : url
+      enlace.download = archivo
+      document.body.appendChild(enlace)
+      enlace.click()
+      document.body.removeChild(enlace)
+    } finally {
+      setDescargando(false)
+    }
   }
 
   async function handleGuardar() {
@@ -106,7 +110,7 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
 
         <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 flex-shrink-0">
           <button
-            onClick={() => window.open(documento.archivo_url, '_blank')}
+            onClick={handleVer}            
             className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Ver

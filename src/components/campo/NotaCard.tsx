@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { NotaCampo } from '../../types'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
+import ImagenPrivada from '../ui/ImagenPrivada'
 
 interface Props {
   nota: NotaCampo
@@ -45,7 +46,7 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
           {nota.contenido}
         </p>
         {nota.foto_url && (
-          <img
+          <ImagenPrivada
             src={nota.foto_url}
             alt="Foto de campo"
             className="mt-3 rounded-lg w-full object-cover max-h-48"
@@ -74,7 +75,7 @@ export default function NotaCard({ nota, onDelete, onUpdate }: Props) {
       />
 
       {nota.foto_url && (
-        <img
+        <ImagenPrivada
           src={nota.foto_url}
           alt="Foto de campo"
           className="rounded-lg w-full object-cover max-h-48"
