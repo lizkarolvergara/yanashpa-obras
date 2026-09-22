@@ -99,8 +99,7 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
             <p className="text-xs text-gray-400 mt-0.5">{checklist.observaciones}</p>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
             {estado.label}
           </span>
           <BotonPDF onClick={handleGenerarPDF} generando={generandoPDF} />

@@ -52,8 +52,7 @@ export default function ObrasPage() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {filtros.map(f => (
+      <div className="flex flex-wrap gap-2 mb-6">        {filtros.map(f => (
           <button
             key={f.value}
             onClick={() => setFiltro(f.value)}

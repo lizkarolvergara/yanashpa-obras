@@ -120,8 +120,7 @@ export default function PendienteItem({ pendiente, onToggle, onDelete, onUpdate 
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">        <div>
           <label className="block text-xs text-gray-500 mb-1">Prioridad</label>
           <select
             value={editForm.prioridad}

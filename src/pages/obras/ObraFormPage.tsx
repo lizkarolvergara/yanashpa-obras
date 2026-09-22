@@ -205,7 +205,7 @@ export default function ObraFormPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1.5">Contratista *</label>
             <input
@@ -230,7 +230,7 @@ export default function ObraFormPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1.5">Tipo *</label>
             <select
@@ -263,7 +263,7 @@ export default function ObraFormPage() {
         {/* Fechas + plazo */}
         <div>
           <p className="text-sm text-gray-600 mb-2">Plazo contractual *</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="ggrid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs text-gray-400 mb-1">Fecha de inicio</label>
               <input
@@ -304,7 +304,7 @@ export default function ObraFormPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1.5">Monto contractual (S/.)</label>
             <input

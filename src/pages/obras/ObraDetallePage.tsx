@@ -125,8 +125,7 @@ export default function ObraDetallePage() {
         <div className="space-y-4">
           <div className="bg-white border border-gray-200 rounded-xl p-6">
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4">Datos del contrato</p>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 text-sm">              <div>
                 <p className="text-xs text-gray-400 mb-1">Contratista</p>
                 <p className="text-gray-800">{obra.contratista}</p>
               </div>
@@ -263,7 +262,7 @@ export default function ObraDetallePage() {
                 }}
                 className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
               >
-                {savingNota ? 'Guardando...' : 'Guardar nota'}
+                {savingNota ? 'Guardando...' : 'Guarda'}
               </button>
             </div>
           </div>
@@ -293,16 +292,15 @@ export default function ObraDetallePage() {
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Contactos del proyecto</p>
               <button
                 onClick={() => setShowContactoForm(true)}
-                className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
               >
-                + Agregar
+                + Nuevo
               </button>
             </div>
 
             {showContactoForm && (
               <div className="bg-gray-50 rounded-xl p-4 mb-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <input
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">                  <input
                     placeholder="Nombre *"
                     value={contactoForm.nombre}
                     onChange={e => setContactoForm(prev => ({ ...prev, nombre: e.target.value }))}
@@ -381,8 +379,7 @@ export default function ObraDetallePage() {
                     return (
                       <div key={c.id} className="bg-gray-50 border border-teal-200 rounded-xl p-4 space-y-3">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Editar contacto</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">                          <div>
                             <label className="block text-xs text-gray-400 mb-1">Nombre *</label>
                             <input
                               value={editContactoForm.nombre}

@@ -30,8 +30,7 @@ export default function ObraCard({ obra, onClick }: Props) {
       className="bg-white border border-gray-200 rounded-xl p-5 cursor-pointer hover:border-teal-300 hover:shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <h2 className="font-medium text-gray-900 leading-snug">{displayNombre}</h2>
-        <EstadoBadge estado={obra.estado} />
+        <h2 className="font-medium text-gray-900 leading-snug min-w-0">{displayNombre}</h2>        <EstadoBadge estado={obra.estado} />
       </div>
 
       <p className="text-sm text-gray-500 mb-4">{obra.contratista}</p>
