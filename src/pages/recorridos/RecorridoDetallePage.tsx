@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useRecorridos } from '../../hooks/useRecorridos'
 import { useObservaciones } from '../../hooks/useObservaciones'

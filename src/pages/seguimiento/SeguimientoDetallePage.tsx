@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams} from 'react-router-dom'
 import { useObra } from '../../hooks/useObra'
 import EstadoBadge from '../../components/obras/EstadoBadge'
 import { usePendientes } from '../../hooks/usePendientes'
@@ -29,7 +29,7 @@ const tabs: { value: Tab; label: string }[] = [
 
 export default function SeguimientoDetallePage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+
   const { obra, loading, error } = useObra(id!)
   const [tab, setTab] = useState<Tab>('pendientes')
 
