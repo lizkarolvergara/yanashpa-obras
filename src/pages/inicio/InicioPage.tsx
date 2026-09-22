@@ -219,7 +219,7 @@ export default function InicioPage() {
               onClick={() => navigate('/proyectos')}
               className="text-xs text-teal-600 hover:text-teal-700"
             >
-              Ver todos →
+              Ver todos
             </button>
           </div>
           <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">

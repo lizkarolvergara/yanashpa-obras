@@ -120,7 +120,7 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
           </button>
           <button
             onClick={() => setEditando(true)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+            className="text-xs text-teal-600 hover:text-teal-700 font-medium transition-colors"
           >
             Editar
           </button>

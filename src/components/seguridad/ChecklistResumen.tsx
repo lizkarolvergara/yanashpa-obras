@@ -4,6 +4,7 @@ import { fechaLocal } from '../../lib/fechas'
 import { generarPdfEvaluacion } from '../../lib/pdfEvaluacion'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 import BotonPDF from '../ui/BotonPDF'
+import BotonDesglose from '../ui/BotonDesglose'
 
 interface Props {
   checklist: Checklist
@@ -102,36 +103,34 @@ export default function ChecklistResumen({ checklist, onDelete, obraNombre, obra
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
             {estado.label}
           </span>
-          <button
-            onClick={() => setExpandido(!expandido)}
-            className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-          >
-            {expandido ? 'Ocultar' : 'Ver detalle'}
-          </button>
           <BotonPDF onClick={handleGenerarPDF} generando={generandoPDF} />
-          <ConfirmarEliminar
-            mensaje="¿Eliminar esta inspección?"
-            onConfirm={() => onDelete(checklist.id)}
-            compacto
-          />
+          <BotonDesglose abierto={expandido} onToggle={() => setExpandido(!expandido)} />
         </div>
       </div>
 
-      {expandido && (
-        <div className="border-t border-gray-100 divide-y divide-gray-100">
-          {Object.entries(ITEMS).map(([key, label]) => {
-            const val = checklist.respuestas[key] ?? 'na'
-            return (
-              <div key={key} className="flex items-center justify-between gap-3 px-5 py-2.5">
-                <p className="text-sm text-gray-600">{label}</p>
-                <span className={`text-xs font-medium flex-shrink-0 ${respuestaConfig[val] ?? ''}`}>
-                  {etiquetaRespuesta[val]}
-                </span>
-              </div>
-            )
-          })}
+      <div className={`desglose ${expandido ? 'desglose-abierto' : ''}`}>
+        <div>
+          <div className="border-t border-gray-100 divide-y divide-gray-100">
+            {Object.entries(ITEMS).map(([key, label]) => {
+              const val = checklist.respuestas[key] ?? 'na'
+              return (
+                <div key={key} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                  <p className="text-sm text-gray-600">{label}</p>
+                  <span className={`text-xs font-medium flex-shrink-0 ${respuestaConfig[val] ?? ''}`}>
+                    {etiquetaRespuesta[val]}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="border-t border-gray-100 px-5 py-3">
+            <ConfirmarEliminar
+              mensaje="¿Eliminar esta inspección?"
+              onConfirm={() => onDelete(checklist.id)}
+            />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -13,3 +13,26 @@
     cursor: not-allowed;
   }
 }
+
+@layer components {
+  /* Desglose con animación suave */
+  .desglose {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms ease;
+  }
+
+  .desglose > div {
+    overflow: hidden;
+  }
+
+  .desglose-abierto {
+    grid-template-rows: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desglose {
+    transition: none;
+  }
+}

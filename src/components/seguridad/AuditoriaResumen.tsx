@@ -4,6 +4,7 @@ import { fechaLocal } from '../../lib/fechas'
 import { generarPdfEvaluacion } from '../../lib/pdfEvaluacion'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 import BotonPDF from '../ui/BotonPDF'
+import BotonDesglose from '../ui/BotonDesglose'
 
 interface Props {
   auditoria: Auditoria
@@ -111,42 +112,40 @@ export default function AuditoriaResumen({ auditoria, onDelete, obraNombre, obra
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${estado.className}`}>
             {estado.label}
           </span>
-          <button
-            onClick={() => setExpandido(!expandido)}
-            className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-          >
-            {expandido ? 'Ocultar' : 'Ver detalle'}
-          </button>
           <BotonPDF onClick={handleGenerarPDF} generando={generandoPDF} />
-          <ConfirmarEliminar
-            mensaje="¿Eliminar esta auditoría?"
-            onConfirm={() => onDelete(auditoria.id)}
-            compacto
-          />
+          <BotonDesglose abierto={expandido} onToggle={() => setExpandido(!expandido)} />
         </div>
       </div>
 
-      {expandido && (
-        <div className="border-t border-gray-100 divide-y divide-gray-100">
-          {SECCIONES.map(seccion => (
-            <div key={seccion.titulo}>
-              <div className="px-5 py-2 bg-gray-50">
-                <p className="text-xs font-medium text-gray-500">{seccion.titulo}</p>
-              </div>
-              {seccion.keys.map(key => (
-                <div key={key} className="flex items-center justify-between gap-3 px-5 py-2.5">
-                  <p className="text-sm text-gray-600">{ITEMS[key] ?? key}</p>
-                  <span className={`text-xs font-medium flex-shrink-0 ${
-                    auditoria.respuestas[key] === 'cuenta' ? 'text-teal-600' : 'text-red-500'
-                  }`}>
-                    {auditoria.respuestas[key] === 'cuenta' ? 'Cuenta' : 'No cuenta'}
-                  </span>
+      <div className={`desglose ${expandido ? 'desglose-abierto' : ''}`}>
+        <div>
+          <div className="border-t border-gray-100 divide-y divide-gray-100">
+            {SECCIONES.map(seccion => (
+              <div key={seccion.titulo}>
+                <div className="px-5 py-2 bg-gray-50">
+                  <p className="text-xs font-medium text-gray-500">{seccion.titulo}</p>
                 </div>
-              ))}
-            </div>
-          ))}
+                {seccion.keys.map(key => (
+                  <div key={key} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                    <p className="text-sm text-gray-600">{ITEMS[key] ?? key}</p>
+                    <span className={`text-xs font-medium flex-shrink-0 ${
+                      auditoria.respuestas[key] === 'cuenta' ? 'text-teal-600' : 'text-red-500'
+                    }`}>
+                      {auditoria.respuestas[key] === 'cuenta' ? 'Cuenta' : 'No cuenta'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-gray-100 px-5 py-3">
+            <ConfirmarEliminar
+              mensaje="¿Eliminar esta auditoría?"
+              onConfirm={() => onDelete(auditoria.id)}
+            />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

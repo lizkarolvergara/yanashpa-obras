@@ -178,7 +178,7 @@ export default function ObraDetallePage() {
               onClick={() => navigate(`/proyectos/${obra.id}/editar`)}
               className="text-sm text-teal-600 hover:text-teal-700 font-medium"
             >
-              Editar información →
+              Editar
             </button>
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function ObraDetallePage() {
                 onClick={() => setShowContactoForm(true)}
                 className="text-xs text-teal-600 hover:text-teal-700 font-medium"
               >
-                + Agregar contacto
+                + Agregar
               </button>
             </div>
 
@@ -470,7 +470,7 @@ export default function ObraDetallePage() {
                               onClick={() => setConfirmandoContacto(true)}
                               className="text-xs text-red-400 hover:text-red-600 transition-colors"
                             >
-                              Eliminar contacto
+                              Eliminar
                             </button>
                           )}
                         </div>
