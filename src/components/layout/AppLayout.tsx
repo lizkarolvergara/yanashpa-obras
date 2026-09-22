@@ -87,24 +87,34 @@ export default function AppLayout() {
               </button>
             )}
 
-            {menuUsuario && user && (
+            {user && (
               <>
+                {menuUsuario && (
+                  <div
+                    className="fixed inset-0 z-40"
+                    aria-hidden="true"
+                    onClick={() => setMenuUsuario(false)}
+                  />
+                )}
                 <div
-                  className="fixed inset-0 z-40"
-                  aria-hidden="true"
-                  onClick={() => setMenuUsuario(false)}
-                />
-                <div className="absolute right-0 top-full mt-2 w-60 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50">
-                  <p className="px-4 pt-1 text-xs text-gray-400">Sesión iniciada como</p>
-                  <p className="px-4 pb-2 text-sm text-gray-700 truncate border-b border-gray-100">
-                    {user.email}
-                  </p>
-                  <button
-                    onClick={handleCerrarSesion}
-                    className="w-full text-left px-4 py-2 mt-1 text-sm text-red-500 hover:bg-gray-50 transition-colors"
-                  >
-                    Cerrar sesión
-                  </button>
+                  className={`absolute right-0 top-full mt-2 w-60 z-50 origin-top-right transition-all duration-200 ${
+                    menuUsuario
+                      ? 'opacity-100 scale-100 translate-y-0'
+                      : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'
+                  }`}
+                >
+                  <div className="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-xs text-gray-400">Sesión iniciada como</p>
+                      <p className="text-sm text-gray-700 truncate mt-1.5">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={handleCerrarSesion}
+                      className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-gray-50 transition-colors"
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
                 </div>
               </>
             )}

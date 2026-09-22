@@ -30,7 +30,7 @@ export default function ObrasPage() {
 
   if (loading || authLoading) return (
     <div className="flex items-center justify-center py-20 text-gray-400 text-sm">
-      Cargando proyectos...
+      Cargando...
     </div>
   )
 
