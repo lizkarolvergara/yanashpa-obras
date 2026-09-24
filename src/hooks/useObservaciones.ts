@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { esModoDemo, idDemo, ahoraIso, esIdDemo } from '../lib/demo'
 import type { ObservacionRecorrido } from '../types'
+import { deleteArchivos } from '../lib/storage'
 
 export function useObservaciones(recorridoId: string) {
   const [observaciones, setObservaciones] = useState<ObservacionRecorrido[]>([])
@@ -56,12 +57,20 @@ export function useObservaciones(recorridoId: string) {
   }
 
   async function deleteObservacion(id: string) {
+    const anterior = observaciones.find(o => o.id === id)
+
     if (!(await esModoDemo())) {
       const { error } = await supabase
         .from('observaciones_recorrido')
         .delete()
         .eq('id', id)
       if (error) throw error
+
+      const fotos = [
+        ...(anterior?.foto_url ? [anterior.foto_url] : []),
+        ...(anterior?.fotos_url ?? []),
+      ]
+      await deleteArchivos(fotos)
     }
     setObservaciones(prev => prev.filter(o => o.id !== id))
   }

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { ObservacionRecorrido } from '../../types'
-import { subirImagen } from '../../lib/storage'
 import ConfirmarEliminar from '../ui/ConfirmarEliminar'
 import SelectorFoto from '../ui/SelectorFoto'
 import ImagenPrivada from '../ui/ImagenPrivada'
+import { subirImagen, deleteArchivos } from '../../lib/storage'
 
 interface Props {
   observacion: ObservacionRecorrido
@@ -32,22 +32,26 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
     ...(observacion.foto_url ? [observacion.foto_url] : []),
     ...(observacion.fotos_url ?? []),
   ])
+    // Fotos subidas durante esta edición, para poder limpiarlas si se cancela
+  const [subidasEnSesion, setSubidasEnSesion] = useState<string[]>([])
 
   async function handleAgregarFoto(file: File) {
     setUploadingFoto(true)
     try {
       const ext = file.name.split('.').pop()
       const path = `observaciones/${observacion.recorrido_id}/${observacion.id}_${Date.now()}.${ext}`
-      const url = await subirImagen(file, path)
-      if (url) setFotosEdit(prev => [...prev, url])
+      const url = await subirImagen(file, path, { tabla: 'recorridos', id: observacion.recorrido_id })
+      if (url) {
+        setFotosEdit(prev => [...prev, url])
+        setSubidasEnSesion(prev => [...prev, url])
+      }
     } finally {
       setUploadingFoto(false)
     }
   }
 
   function handleEliminarFoto(url: string) {
-    // Solo elimina del array local — no borra del storage para no perder datos
-    setFotosEdit(prev => prev.filter(f => f !== url))
+  setFotosEdit(prev => prev.filter(f => f !== url))
   }
 
   async function handleGuardar() {
@@ -60,8 +64,22 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
       foto_url:    primeraFoto ?? null,
       fotos_url:   restoFotos,
     })
+
+    // Borrar del storage las fotos que se quitaron
+    const eliminadas = [...todasLasFotos, ...subidasEnSesion]
+      .filter(url => !fotosEdit.includes(url))
+    await deleteArchivos(eliminadas)
+
+    setSubidasEnSesion([])
     setSaving(false)
     setEditando(false)
+  }
+    async function handleCancelar() {
+    setEditando(false)
+    // Las fotos subidas y no guardadas quedarían huérfanas
+    const huerfanas = subidasEnSesion
+    setSubidasEnSesion([])
+    await deleteArchivos(huerfanas)
   }
 
   // ── Vista normal ──────────────────────────────────────────────────────────
@@ -86,6 +104,7 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
                 ...(observacion.foto_url ? [observacion.foto_url] : []),
                 ...(observacion.fotos_url ?? []),
               ])
+              setSubidasEnSesion([])
               setEditando(true)
             }}
             className="text-xs text-teal-600 hover:text-teal-700 font-medium flex-shrink-0"
@@ -174,7 +193,7 @@ export default function ObservacionItem({ observacion, numero, onDelete, onUpdat
 
       <div className="flex gap-2">
         <button
-          onClick={() => setEditando(false)}
+          onClick={handleCancelar}
           className="flex-1 border border-gray-200 text-gray-600 text-sm py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Cancelar

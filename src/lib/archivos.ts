@@ -48,3 +48,21 @@ export async function urlVisible(valor: string, opciones: Opciones = {}): Promis
   if (error || !data) return valor
   return data.signedUrl
 }
+
+/**
+ * Decide a qué bucket va un archivo nuevo.
+ * Los del proyecto o recorrido de ejemplo van al bucket público `demo`,
+ * para que los visitantes puedan verlos sin sesión.
+ */
+export async function bucketDestino(
+  tabla: 'obras' | 'recorridos',
+  id: string | null | undefined
+): Promise<string> {
+  if (!id) return BUCKET
+  const { data } = await supabase
+    .from(tabla)
+    .select('es_demo')
+    .eq('id', id)
+    .maybeSingle()
+  return data?.es_demo ? BUCKET_DEMO : BUCKET
+}

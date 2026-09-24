@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { esModoDemo } from './demo'
+import { BUCKET, bucketDestino, rutaDeArchivo } from './archivos'
 
 /** Sube un documento y devuelve su URL. En modo demo devuelve una URL local. */
 export async function uploadArchivo(file: File, obraId: string): Promise<string> {
@@ -10,39 +11,46 @@ export async function uploadArchivo(file: File, obraId: string): Promise<string>
     return `${URL.createObjectURL(file)}#archivo.${ext}`
   }
 
+  const bucket = await bucketDestino('obras', obraId)
   const path = `${obraId}/${Date.now()}.${ext}`
 
   const { error } = await supabase.storage
-    .from('documentos')
+    .from(bucket)
     .upload(path, file)
 
   if (error) throw error
 
   const { data } = supabase.storage
-    .from('documentos')
+    .from(bucket)
     .getPublicUrl(path)
 
   return data.publicUrl
 }
 
-/** Sube una imagen y devuelve su URL (o null si falla). En modo demo devuelve una URL local. */
-export async function subirImagen(archivo: Blob, path: string): Promise<string | null> {
+/**
+ * Sube una imagen y devuelve su URL (o null si falla).
+ * En modo demo devuelve una URL local.
+ * `demoDe` indica de qué proyecto o recorrido depende, para elegir el bucket.
+ */
+export async function subirImagen(
+  archivo: Blob,
+  path: string,
+  demoDe?: { tabla: 'obras' | 'recorridos'; id: string }
+): Promise<string | null> {
   if (await esModoDemo()) return URL.createObjectURL(archivo)
 
+  const bucket = demoDe
+    ? await bucketDestino(demoDe.tabla, demoDe.id)
+    : BUCKET
+
   const { error } = await supabase.storage
-    .from('documentos')
+    .from(bucket)
     .upload(path, archivo, { upsert: true, contentType: archivo.type || 'image/jpeg' })
 
   if (error) return null
 
-  const { data } = supabase.storage.from('documentos').getPublicUrl(path)
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
   return data.publicUrl
-}
-
-/** Extrae la ruta interna del bucket a partir de la URL pública */
-function rutaDesdeUrl(url: string): string | null {
-  const ruta = url.split('/documentos/')[1]
-  return ruta ? decodeURIComponent(ruta.split('?')[0]) : null
 }
 
 export async function deleteArchivo(url: string) {
@@ -52,12 +60,17 @@ export async function deleteArchivo(url: string) {
 export async function deleteArchivos(urls: string[]) {
   if (await esModoDemo()) return
 
-  const rutas = urls
-    .map(rutaDesdeUrl)
-    .filter((r): r is string => !!r)
+  // Agrupar por bucket, porque cada uno se borra por separado
+  const porBucket = new Map<string, string[]>()
 
-  if (rutas.length === 0) return
+  for (const url of urls) {
+    const info = rutaDeArchivo(url)
+    if (!info) continue
+    porBucket.set(info.bucket, [...(porBucket.get(info.bucket) ?? []), info.ruta])
+  }
 
-  const { error } = await supabase.storage.from('documentos').remove(rutas)
-  if (error) console.error('No se pudieron borrar algunos archivos:', error.message)
+  for (const [bucket, rutas] of porBucket) {
+    const { error } = await supabase.storage.from(bucket).remove(rutas)
+    if (error) console.error(`No se pudieron borrar archivos de ${bucket}:`, error.message)
+  }
 }

@@ -52,7 +52,11 @@ export default function BitacoraCard({ entrada, onDelete, onUpdate }: Props) {
       let foto_url = fotoActual
       if (fotoNueva) {
         const blob = await comprimirImagen(fotoNueva.file)
-        const subida = await subirImagen(blob, `bitacora/${entrada.obra_id}/${Date.now()}.jpg`)
+        const subida = await subirImagen(
+          blob,
+          `bitacora/${entrada.obra_id}/${Date.now()}.jpg`,
+          { tabla: 'obras', id: entrada.obra_id },
+        )
         if (!subida) throw new Error('No se pudo subir la foto.')
         foto_url = subida
       }

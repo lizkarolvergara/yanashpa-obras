@@ -66,7 +66,7 @@ export default function SeguimientoDetallePage() {
       if (fotoFile) {
         const blob = await comprimirImagen(fotoFile)
         const path = `bitacora/${id}/${Date.now()}.jpg`
-        foto_url = await subirImagen(blob, path)
+        foto_url = await subirImagen(blob, path, { tabla: 'obras', id: id! })      
       }
 
       await createEntrada({

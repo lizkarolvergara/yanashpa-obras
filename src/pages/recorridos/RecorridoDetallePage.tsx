@@ -46,7 +46,7 @@ export default function RecorridoDetallePage() {
       for (const { file } of fotosNuevas) {
         const blob = await comprimirImagen(file)
         const path = `recorridos/${id}/${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`
-        const url = await subirImagen(blob, path)
+        const url = await subirImagen(blob, path, { tabla: 'recorridos', id: id! })
         if (url) urlsSubidas.push(url)
       }
       const [primeraFoto, ...restoFotos] = urlsSubidas
