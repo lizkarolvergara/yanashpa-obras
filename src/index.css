@@ -51,3 +51,8 @@
     min-height: 42px;
   }
 }
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

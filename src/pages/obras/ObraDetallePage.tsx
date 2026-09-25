@@ -262,7 +262,7 @@ export default function ObraDetallePage() {
                 }}
                 className="bg-teal-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-teal-700 disabled:opacity-40 transition-colors"
               >
-                {savingNota ? 'Guardando...' : 'Guarda'}
+                {savingNota ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>
