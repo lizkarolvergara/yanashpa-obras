@@ -63,6 +63,7 @@ export default function DocumentoItem({ documento, onDelete, onUpdate }: Props) 
     try {
       const archivo = nombreConExtension(documento.archivo_url, documento.nombre)
       const url = await urlVisible(documento.archivo_url, { segundos: 300, descargar: archivo })
+      console.info('[descarga]', { archivo, url })  // TEMPORAL      
       const enlace = document.createElement('a')
       enlace.href = url.startsWith('blob:') ? url.split('#')[0] : url
       enlace.download = archivo

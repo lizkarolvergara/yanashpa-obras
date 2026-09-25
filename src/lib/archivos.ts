@@ -34,7 +34,13 @@ interface Opciones {
 export async function urlVisible(valor: string, opciones: Opciones = {}): Promise<string> {
   const info = rutaDeArchivo(valor)
   if (!info) return valor
-  if (info.bucket === BUCKET_DEMO) return valor
+
+  // El bucket demo es público: no se firma, pero sí admite ?download=
+  if (info.bucket === BUCKET_DEMO) {
+    if (!opciones.descargar) return valor
+    const sep = valor.includes('?') ? '&' : '?'
+    return `${valor}${sep}download=${encodeURIComponent(opciones.descargar)}`
+  }
 
   const { data, error } = await supabase.storage
     .from(info.bucket)

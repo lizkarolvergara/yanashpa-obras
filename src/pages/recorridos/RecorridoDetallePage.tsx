@@ -11,6 +11,7 @@ import BotonVolver from '../../components/ui/BotonVolver'
 import SelectorFoto from '../../components/ui/SelectorFoto'
 import ConfirmarEliminar from '../../components/ui/ConfirmarEliminar'
 import BotonPDF from '../../components/ui/BotonPDF'
+import { urlVisible } from '../../lib/archivos'
 
 export default function RecorridoDetallePage() {
   const { id } = useParams<{ id: string }>()
@@ -152,8 +153,8 @@ export default function RecorridoDetallePage() {
             if (y + drawH > 270) { doc.addPage(); y = 20 }
             doc.addImage(imgData, 'JPEG', margin, y, drawW, drawH)
             y += drawH + 4
-          } catch {
-            // si falla la imagen, continuar
+          } catch (err) {
+            console.error('[pdf] falló la imagen', fotoUrl, err)  // TEMPORAL
           }
         }
 
@@ -173,60 +174,29 @@ export default function RecorridoDetallePage() {
     }
   }
 
+  /** Descarga una imagen y la convierte a base64 para incrustarla en el PDF */
   async function fetchImageWithDimensions(url: string): Promise<{ imgData: string; width: number; height: number }> {
-    // Cargamos la imagen via canvas para evitar problemas CORS en producción
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.naturalWidth
-          canvas.height = img.naturalHeight
-          const ctx = canvas.getContext('2d')!
-          ctx.drawImage(img, 0, 0)
-          const imgData = canvas.toDataURL('image/jpeg', 0.85)
-          resolve({ imgData, width: img.naturalWidth, height: img.naturalHeight })
-        } catch {
-          // Si canvas falla (tainted), intentar con fetch directo
-          fetch(url, { headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY } })
-            .then(r => r.blob())
-            .then(blob => new Promise<string>((res, rej) => {
-              const reader = new FileReader()
-              reader.onload = () => res(reader.result as string)
-              reader.onerror = rej
-              reader.readAsDataURL(blob)
-            }))
-            .then(imgData => {
-              const i = new Image()
-              i.onload = () => resolve({ imgData, width: i.naturalWidth, height: i.naturalHeight })
-              i.src = imgData
-            })
-            .catch(reject)
-        }
-      }
-      img.onerror = () => {
-        // Si crossOrigin falla, intentar sin él
-        const img2 = new Image()
-        img2.onload = () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img2.naturalWidth
-          canvas.height = img2.naturalHeight
-          const ctx = canvas.getContext('2d')
-          if (!ctx) return reject(new Error('no canvas'))
-          try {
-            ctx.drawImage(img2, 0, 0)
-            const imgData = canvas.toDataURL('image/jpeg', 0.85)
-            resolve({ imgData, width: img2.naturalWidth, height: img2.naturalHeight })
-          } catch {
-            reject(new Error('tainted canvas'))
-          }
-        }
-        img2.onerror = reject
-        img2.src = url
-      }
-      img.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now()
+    const destino = await urlVisible(url, { segundos: 600 })
+    const respuesta = await fetch(destino)
+    if (!respuesta.ok) throw new Error(`No se pudo descargar la imagen (${respuesta.status})`)
+
+    const blob = await respuesta.blob()
+
+    const imgData = await new Promise<string>((resolve, reject) => {
+      const lector = new FileReader()
+      lector.onload = () => resolve(lector.result as string)
+      lector.onerror = () => reject(new Error('No se pudo leer la imagen'))
+      lector.readAsDataURL(blob)
     })
+
+    const medidas = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      img.onerror = () => reject(new Error('No se pudo medir la imagen'))
+      img.src = imgData
+    })
+
+    return { imgData, ...medidas }
   }
 
   if (loadingRecorridos) return (
