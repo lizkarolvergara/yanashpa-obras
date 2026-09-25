@@ -153,8 +153,8 @@ export default function RecorridoDetallePage() {
             if (y + drawH > 270) { doc.addPage(); y = 20 }
             doc.addImage(imgData, 'JPEG', margin, y, drawW, drawH)
             y += drawH + 4
-          } catch (err) {
-            console.error('[pdf] falló la imagen', fotoUrl, err)  // TEMPORAL
+          } catch {
+            // si falla la imagen, continuar
           }
         }
 

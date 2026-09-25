@@ -4,8 +4,7 @@ import { useObras } from '../../hooks/useObras'
 import { useAuth } from '../../context/AuthContext'
 import ObraCard from '../../components/obras/ObraCard'
 import TarjetasBloqueadas from '../../components/auth/TarjetasBloqueadas'
-
-type Filtro = 'todas' | 'activa' | 'pausada' | 'cerrada'
+import FiltroEstado, { type Filtro } from '../../components/obras/FiltroEstado'
 
 export default function ObrasPage() {
   const { obras, loading, error } = useObras()
@@ -13,12 +12,6 @@ export default function ObrasPage() {
   const [filtro, setFiltro] = useState<Filtro>('activa')
   const navigate = useNavigate()
 
-  const filtros: { value: Filtro; label: string }[] = [
-    { value: 'todas',   label: 'Todos' },
-    { value: 'activa',  label: 'Activos' },
-    { value: 'pausada', label: 'Pausados' },
-    { value: 'cerrada', label: 'Cerrados' },
-  ]
 
   const obrasFiltradas = filtro === 'todas'
     ? obras
@@ -52,20 +45,7 @@ export default function ObrasPage() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">        {filtros.map(f => (
-          <button
-            key={f.value}
-            onClick={() => setFiltro(f.value)}
-            className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
-              filtro === f.value
-                ? 'bg-teal-50 text-teal-700 font-medium'
-                : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <FiltroEstado valor={filtro} onChange={setFiltro} />
 
       {!user ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

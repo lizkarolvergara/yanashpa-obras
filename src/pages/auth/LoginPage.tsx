@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-dvh bg-gray-50 flex items-start sm:items-center justify-center px-4 py-10 sm:py-4 overflow-y-auto">
       <div className="w-full max-w-sm">
         <Link to="/" className="block text-center font-medium text-gray-900 mb-6 hover:text-teal-600 transition-colors">
           MY Operaciones
